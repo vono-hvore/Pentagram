@@ -48,13 +48,6 @@
 			);
 			target = 2296F22F2DECE2BF0039BB1A /* PentagramExample */;
 		};
-		2296F2582DECE2E10039BB1A /* Exceptions for "Pentagram" folder in "Pentagram" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			publicHeaders = (
-				Pentagram.h,
-			);
-			target = 2296F24C2DECE2E10039BB1A /* Pentagram */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -68,9 +61,6 @@
 		};
 		2296F24E2DECE2E10039BB1A /* Pentagram */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				2296F2582DECE2E10039BB1A /* Exceptions for "Pentagram" folder in "Pentagram" target */,
-			);
 			path = Pentagram;
 			sourceTree = "<group>";
 		};
