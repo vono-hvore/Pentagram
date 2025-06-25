@@ -12,4 +12,6 @@ protocol GestureObservable: Sendable {
     func receiveMovedState(to point: CGPoint, dt: TimeInterval) async
     func receiveEndState(at point: CGPoint) async
     func receiveCancelledState() async
+    func receiveRotation(radians: CGFloat) async
+    func receiveRotationStart(at point: CGPoint) async
 }

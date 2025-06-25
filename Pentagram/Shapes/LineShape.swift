@@ -8,9 +8,10 @@
 import UIKit
 import QuartzCore
 
-struct LineShape: Shape, Render, Transformable {
+struct LineShape: Shape {
     let id: UUID = UUID()
     let style: LineShapeStyle
+    let transform: Transform = .identity
     private let start: CGPoint
     private let end: CGPoint
     
@@ -24,7 +25,11 @@ struct LineShape: Shape, Render, Transformable {
         self.style = style
     }
     
-    public func tranform(_ transform: Transform) -> Self {
+    func tranform(_ transform: Transform) -> Self {
+        .init(start, end, style: style)
+    }
+    
+    func move(by point: CGPoint) -> LineShape {
         .init(start, end, style: style)
     }
     
@@ -42,6 +47,22 @@ struct LineShape: Shape, Render, Transformable {
         context.strokePath()
         
         context.restoreGState()
+    }
+    
+    func anchor(at point: CGPoint) -> Self {
+        return self
+    }
+    
+    func hitTest(_ point: CGPoint) -> Bool {
+        CGPoint.distance(start, point) == CGPoint.distance(end, point)
+    }
+    
+    func rotate(by radians: CGFloat) -> LineShape {
+        self
+    }
+    
+    func scale(by delta: CGFloat) -> LineShape {
+        self
     }
 }
 

@@ -14,12 +14,11 @@ protocol ArtHandler: Sendable {
     func complete(_ shape: any Shape) async
 }
 
-protocol PointHandler {
+protocol PointHandler: Sendable {
     func addPoint(_ point: CGPoint) async
 }
 
-@MainActor
-class LineDotsShapeFactory: ArtFactory, PointHandler {
+actor LineDotsShapeFactory: ArtFactory, PointHandler {
     private let dotRadius: CGFloat
     private var dots: [CGPoint] = []
     private var finalShape: LineDotsShape?

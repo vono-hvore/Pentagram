@@ -7,10 +7,11 @@
 
 import UIKit
 
-struct CircleShape: Shape, Render, Transformable {
+struct CircleShape: Shape {
     let id: UUID = UUID()
     let style: CircleShapeStyle
     let rect: CGRect
+    let transform: Transform = .identity
     
     init(
         _ rect: CGRect,
@@ -24,6 +25,10 @@ struct CircleShape: Shape, Render, Transformable {
         .init(rect, style: style)
     }
     
+    func move(by point: CGPoint) -> CircleShape {
+        .init(rect, style: style)
+    }
+    
     func render(in context: CGContext) {
         context.saveGState()
         
@@ -32,6 +37,23 @@ struct CircleShape: Shape, Render, Transformable {
         context.drawPath(using: .fillStroke)
         
         context.restoreGState()
+    }
+    
+    func hitTest(_ point: CGPoint) -> Bool {
+        rect.contains(point)
+    }
+    
+    
+    func anchor(at point: CGPoint) -> Self {
+        self
+    }
+    
+    func rotate(by radians: CGFloat) -> Self {
+        self
+    }
+    
+    func scale(by delta: CGFloat) -> Self {
+        self
     }
 }
 

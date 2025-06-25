@@ -7,20 +7,7 @@
 
 import UIKit
 
-enum DrawingObjectType: Hashable {
-    case dot,
-         line,
-         triangle,
-         rect,
-         pentagon,
-         polygon
-}
-
-protocol DrawingObject {
-    var uuid: UUID { get }
-    var type: DrawingObjectType { get }
-}
-
+@MainActor
 public class DrawingView: UIView {
     private let contentView: UIView = .init()
     private let selectionView: UIView = RectangleSelectionView()
@@ -31,14 +18,24 @@ public class DrawingView: UIView {
         super.init(frame: frame)
         isOpaque = true
         backgroundColor = .clear
-        let gesture = UITapGestureRecognizer(
+        let tap = UITapGestureRecognizer(
             target: self,
-            action: #selector(didTap)
+            action: #selector(onTap)
+        )
+        let pan = UIPanGestureRecognizer(
+            target: self,
+            action: #selector(onPan)
+        )
+        pan.maximumNumberOfTouches = 1
+        let rotation = UIRotationGestureRecognizer(
+            target: self,
+            action: #selector(onRotate)
         )
         isUserInteractionEnabled = true
-        addGestureRecognizer(gesture)
+        addGestureRecognizer(tap)
+        addGestureRecognizer(pan)
+        addGestureRecognizer(rotation)
         setupViews()
-        addGestureRecognizer(UIGestureRecognizer(target: self, action: #selector(didTap)))
     }
     
     required init?(coder: NSCoder) {
@@ -51,11 +48,14 @@ public class DrawingView: UIView {
     func removeGestureObserver(_ observer: ArtCoordinator) {
     }
     
-    @MainActor
     public override func draw(_: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
         
         artCoordinator.draw(in: context)
+    }
+    
+    public func select(tool newTool: Tool) {
+        artCoordinator.select(tool: newTool)
     }
 }
 
@@ -73,29 +73,68 @@ private extension DrawingView {
     }
     
     @objc
-    private func didTap(_ sender: UIGestureRecognizer) {
+    private func onTap(_ sender: UITapGestureRecognizer) {
         let point = sender.location(in: self)
-//        let observers = gestureObservers
-//            .lazy
-//            .compactMap { $0 as? GestureObservable }
-//        
-        switch sender.state {
-        case .began:
-            break
-//            observers.forEach { $0.receiveStartState(at: point) }
+        let state = sender.state
+        Task { @MainActor [state, point] in
+            await handleTap(state, point: point)
+            setNeedsDisplay()
+        }
+    }
+    
+    @objc
+    private func onPan(_ sender: UIPanGestureRecognizer) {
+        let point = sender.location(in: self)
+        let state = sender.state
+        Task { @MainActor [state, point] in
+            await handleTap(state, point: point)
+            setNeedsDisplay()
+        }
+    }
+    
+    @objc
+    private func onRotate(_ sender: UIRotationGestureRecognizer) {
+        let point = sender.location(in: self)
+        let rotation = sender.rotation
+        let state = sender.state
+        Task { @MainActor [state, rotation] in
+            await handleRotation(state, point: point, rotation: rotation)
+            setNeedsDisplay()
+        }
+    }
+    
+    func handleTap(_ state: UIGestureRecognizer.State, point: CGPoint) async {
+        switch state {
+        case .began, .possible:
+            print("begin: \(point)")
+            await artCoordinator.receiveStartState(at: point)
         case .changed:
-            break
-//            observers.forEach { $0.receiveMovedState(to: point, dt: TimeInterval.zero) }
+            print("changed: \(point)")
+            await artCoordinator.receiveMovedState(to: point, dt: .zero)
         case .ended:
-            Task {
-                print(point)
-                await artCoordinator.receiveEndState(at: point)
-                setNeedsDisplay()
-            }
-//            observers.forEach { $0.receiveEndState(at: point) }
+            print("ended: \(point)")
+            await artCoordinator.receiveEndState(at: point)
         case .failed, .cancelled:
-            break
-//            observers.forEach { $0.receiveCancelledState() }
+            print("failed: \(point)")
+            await artCoordinator.receiveCancelledState()
+        default: break
+        }
+    }
+    
+    func handleRotation(_ state: UIGestureRecognizer.State, point: CGPoint, rotation: CGFloat) async {
+        switch state {
+        case .began:
+            print("begin: \(point)")
+            await artCoordinator.receiveRotationStart(at: point)
+        case .changed:
+            print("changed: \(point)")
+            await artCoordinator.receiveRotation(radians: rotation)
+        case .ended:
+            print("ended: \(point)")
+            await artCoordinator.receiveEndState(at: point)
+        case .failed, .cancelled:
+            print("failed: \(point)")
+            await artCoordinator.receiveCancelledState()
         default: break
         }
     }
