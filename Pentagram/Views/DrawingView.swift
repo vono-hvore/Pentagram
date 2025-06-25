@@ -7,7 +7,6 @@
 
 import UIKit
 
-@MainActor
 public class DrawingView: UIView {
     private let contentView: UIView = .init()
     private let selectionView: UIView = RectangleSelectionView()
@@ -76,7 +75,7 @@ private extension DrawingView {
     private func onTap(_ sender: UITapGestureRecognizer) {
         let point = sender.location(in: self)
         let state = sender.state
-        Task { @MainActor [state, point] in
+        Task { [state, point] in
             await handleTap(state, point: point)
             setNeedsDisplay()
         }
@@ -86,7 +85,7 @@ private extension DrawingView {
     private func onPan(_ sender: UIPanGestureRecognizer) {
         let point = sender.location(in: self)
         let state = sender.state
-        Task { @MainActor [state, point] in
+        Task { [state, point] in
             await handleTap(state, point: point)
             setNeedsDisplay()
         }
@@ -97,7 +96,7 @@ private extension DrawingView {
         let point = sender.location(in: self)
         let rotation = sender.rotation
         let state = sender.state
-        Task { @MainActor [state, rotation] in
+        Task { [state, rotation] in
             await handleRotation(state, point: point, rotation: rotation)
             setNeedsDisplay()
         }

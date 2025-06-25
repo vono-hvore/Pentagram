@@ -10,8 +10,8 @@ import UIKit
 struct LineDotsShape: Shape {
     let id: UUID = UUID()
     let style: LineDotsShapeStyle
-    let transform: Transform = .identity
-    private let anchor: Anchor // CGLayerAnchor, // Maybe anchor need to be moved to transform
+    private let transform: CGAffineTransform = .identity
+    private let anchor: Anchor
     private let dotRadius: CGFloat
     private let start: CGPoint
     private let end: CGPoint
@@ -20,8 +20,8 @@ struct LineDotsShape: Shape {
         _ start: CGPoint,
         _ end: CGPoint,
         dotRadius: CGFloat,
-        anchor: Anchor = .line,
-        style: ShapeStyle = LineDotsShapeStyle()
+        anchor: Anchor = .line(.zero),
+        style: LineDotsShapeStyle = .init()
     ) {
         self.anchor = anchor
         self.start = start
@@ -30,67 +30,6 @@ struct LineDotsShape: Shape {
         self.style = style
     }
     
-    func tranform(_ transform: Transform) -> Self {
-        .init(
-            start.applying(transform),
-            end.applying(transform),
-            dotRadius: dotRadius,
-            style: style
-        )
-    }
-    
-    func move(by delta: CGPoint) -> Self {
-        return switch anchor {
-        case .startDot:
-                .init(
-                    start.applying(transform.translated(by: delta)),
-                    end,
-                    dotRadius: dotRadius,
-                    anchor: anchor,
-                    style: style
-                )
-        case .endDot:
-                .init(
-                    start,
-                    end.applying(transform.translated(by: delta)),
-                    dotRadius: dotRadius,
-                    anchor: anchor,
-                    style: style
-                )
-        case .line:
-            tranform(transform.translated(by: delta))
-        }
-    }
-    
-    func rotate(by radians: CGFloat) -> Self {
-        let middlePoint = CGPoint.middlePoint(start, end)
-        return .init(
-            start.applying(CGAffineTransform
-                .identity
-                .translatedBy(x: middlePoint.x, y: middlePoint.y)
-                .rotated(by: transform.rotation + radians)
-                .translatedBy(x: -middlePoint.x, y: -middlePoint.y)
-            ),
-            end.applying(CGAffineTransform
-                .identity
-                .translatedBy(x: middlePoint.x, y: middlePoint.y)
-                .rotated(by: transform.rotation + radians)
-                .translatedBy(x: -middlePoint.x, y: -middlePoint.y)
-            ),
-            dotRadius: dotRadius,
-            style: style
-        )
-    }
-    
-    func scale(by delta: CGFloat) -> Self {
-        .init(
-            CGPoint(x: start.x + delta, y: start.y + delta),
-            CGPoint(x: end.x + delta, y: end.y + delta),
-            dotRadius: dotRadius,
-            anchor: anchor,
-            style: style
-        )
-    }
     
     func render(in context: CGContext) {
         context.saveGState()
@@ -121,43 +60,43 @@ struct LineDotsShape: Shape {
     }
     
     func hitTest(_ point: CGPoint) -> Bool {
-        anchor(at: point) != nil
+        findAnchor(at: point) != nil
     }
     
     func anchor(at point: CGPoint) -> Self {
-        guard let newAnchor = anchor(at: point) else { return self }
+        guard let newAnchor = findAnchor(at: point) else { return self }
+        
         return .init(start, end, dotRadius: dotRadius, anchor: newAnchor, style: style)
     }
     
-    func anchor(at point: CGPoint) -> Anchor? {
+    func findAnchor(at point: CGPoint) -> Anchor? {
+        var threshold: CGFloat = 25
         let startRect = CGRect(
             centroid: start,
-            width: dotRadius * 2 + 40,
-            hedith: dotRadius * 2 + 40
+            width: dotRadius * 2 + threshold,
+            hedith: dotRadius * 2 + threshold
         )
         let endRect = CGRect(
             centroid: end,
-            width: dotRadius * 2 + 40,
-            hedith: dotRadius * 2 + 40
+            width: dotRadius * 2 + threshold,
+            hedith: dotRadius * 2 + threshold
         )
         if startRect.contains(point) {
-            return .startDot
+            return .startDot(point)
         }
         if endRect.contains(point) {
-            return .endDot
+            return .endDot(point)
         }
-        // Check if point is close enough to the line segment
         let lineWidth = style.lineStyle.lineWidth
-        let threshold = max(lineWidth, 40)
+        threshold = max(lineWidth, 40)
         let distance = distanceFromPointToSegment(point, start, end)
         if distance <= threshold / 2 {
-            return .line
+            return .line(point)
         }
         
         return nil
     }
     
-    // Helper: Distance from point to line segment
     private func distanceFromPointToSegment(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
         let ab = b - a
         let ap = p - a
@@ -169,13 +108,73 @@ struct LineDotsShape: Shape {
     }
 }
 
+// MARK: - Transform
+
+extension LineDotsShape {
+    func move(by delta: CGPoint) -> Self {
+        return switch anchor {
+        case .startDot:
+                .init(
+                    start.applying(
+                        transform.translated(by: delta)
+                    ),
+                    end,
+                    dotRadius: dotRadius,
+                    anchor: anchor,
+                    style: style
+                )
+        case .endDot:
+                .init(
+                    start,
+                    end.applying(
+                        transform.translated(by: delta)
+                    ),
+                    dotRadius: dotRadius,
+                    anchor: anchor,
+                    style: style
+                )
+        case .line:
+                .init(
+                    start.applying(
+                        transform.translated(by: delta)
+                    ),
+                    end.applying(
+                        transform.translated(by: delta)
+                    ),
+                    dotRadius: dotRadius,
+                    style: style
+                )
+        }
+    }
+    
+    func rotate(by radians: CGFloat) -> Self {
+        let middlePoint: CGPoint = .middlePoint(start, end)
+        return .init(
+            start.applying(
+                transform
+                    .translated(by: middlePoint)
+                    .rotated(by: radians)
+                    .translated(by: -middlePoint)
+            ),
+            end.applying(
+                transform
+                    .translated(by: middlePoint)
+                    .rotated(by: radians)
+                    .translated(by: -middlePoint)
+            ),
+            dotRadius: dotRadius,
+            style: style
+        )
+    }
+}
+
 // MARK: - Anchor
 
 extension LineDotsShape {
     enum Anchor {
-        case startDot
-        case endDot
-        case line
+        case startDot(CGPoint)
+        case endDot(CGPoint)
+        case line(CGPoint)
     }
 }
 

@@ -11,7 +11,6 @@ import QuartzCore
 struct LineShape: Shape {
     let id: UUID = UUID()
     let style: LineShapeStyle
-    let transform: Transform = .identity
     private let start: CGPoint
     private let end: CGPoint
     
@@ -23,10 +22,6 @@ struct LineShape: Shape {
         self.start = start
         self.end = end
         self.style = style
-    }
-    
-    func tranform(_ transform: Transform) -> Self {
-        .init(start, end, style: style)
     }
     
     func move(by point: CGPoint) -> LineShape {

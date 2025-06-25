@@ -42,6 +42,7 @@ extension ArtCoordinator: GestureObservable {
         case .line: break
         }
     }
+    
     func receiveRotation(radians: CGFloat) async {
         switch tool {
         case .select:

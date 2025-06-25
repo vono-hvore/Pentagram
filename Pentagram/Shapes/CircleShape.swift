@@ -11,7 +11,6 @@ struct CircleShape: Shape {
     let id: UUID = UUID()
     let style: CircleShapeStyle
     let rect: CGRect
-    let transform: Transform = .identity
     
     init(
         _ rect: CGRect,
@@ -19,10 +18,6 @@ struct CircleShape: Shape {
     ) {
         self.rect = rect
         self.style = style
-    }
-    
-    func tranform(_ transform: Transform) -> Self {
-        .init(rect, style: style)
     }
     
     func move(by point: CGPoint) -> CircleShape {

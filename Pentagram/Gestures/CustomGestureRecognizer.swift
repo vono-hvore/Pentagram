@@ -1,5 +1,5 @@
 //
-//  CustomGestureRecognizer 2.swift
+//  CustomGestureRecognizer.swift
 //  PentagramExample
 //
 //  Created by Rodion Hladchenko on 04.06.2025.

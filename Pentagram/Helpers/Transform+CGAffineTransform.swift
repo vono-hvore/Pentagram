@@ -7,41 +7,12 @@
 
 import UIKit
 
-extension Transform {
-    public var affineTransform: CGAffineTransform {
-        CGAffineTransform(
-            translationX: translation.x,
-            y: translation.y
-        )
-        .rotated(by: rotation)
-        .scaledBy(x: scale, y: scale)
-    }
-    
-    
+extension CGAffineTransform {
     public func translated(by delta: CGPoint) -> Self {
-        .init(
-            translation: CGPoint(
-                x: translation.x + delta.x,
-                y: translation.y + delta.y
-            ),
-            rotation: rotation,
-            scale: scale
-        )
+        self.translatedBy(x: delta.x, y: delta.y)
     }
     
     public func scaled(by amount: CGFloat) -> Self {
-        .init(
-            translation: translation,
-            rotation: rotation,
-            scale: scale * amount
-        )
-    }
-    
-    public func rotated(by radians: CGFloat) -> Self {
-        .init(
-            translation: translation,
-            rotation: rotation + radians,
-            scale: scale
-        )
+        self.scaledBy(x: amount, y: amount)
     }
 }

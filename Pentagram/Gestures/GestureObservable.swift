@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 protocol GestureObservable: Sendable {
     func receiveStartState(at point: CGPoint) async
     func receiveMovedState(to point: CGPoint, dt: TimeInterval) async

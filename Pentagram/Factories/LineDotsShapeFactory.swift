@@ -9,12 +9,13 @@ import Foundation
 
 protocol ArtFactory {}
 
+@MainActor
 protocol ArtHandler: Sendable {
-    func inProgerss(_ draft: any Shape) async
-    func complete(_ shape: any Shape) async
+    func inProgerss(_ draft: any Shape)
+    func complete(_ shape: any Shape)
 }
 
-protocol PointHandler: Sendable {
+protocol PointHandler {
     func addPoint(_ point: CGPoint) async
 }
 
@@ -32,29 +33,33 @@ actor LineDotsShapeFactory: ArtFactory, PointHandler {
         self.dotRadius = dotRadius
     }
     
-    func draft(_ shape: any Shape) async {
-        await delegate.inProgerss(shape)
+    func draft(_ shape: any Shape) {
+        Task {
+            await delegate.inProgerss(shape)
+        }
     }
     
-    private func complete(_ finalShape: LineDotsShape) async {
+    private func complete(_ finalShape: LineDotsShape) {
         self.finalShape = finalShape
-        await delegate.complete(finalShape)
+        Task {
+            await delegate.complete(finalShape)
+        }
     }
     
     func addPoint(_ point: CGPoint) async {
         if let finalShape {
-            await complete(finalShape)
+            complete(finalShape)
             return
         }
         
         let rect = CGRect(centroid: .init(x: point.x, y: point.y), width: dotRadius * 2, hedith: dotRadius * 2)
         let dot: CircleShape = .init(rect)
         dots.append(point)
-        await draft(dot)
+        draft(dot)
         
         if dots.count == 2 {
             let line = LineDotsShape(dots[0], dots[1], dotRadius: dotRadius)
-            await complete(line)
+            complete(line)
         }
     }
 }

@@ -27,8 +27,4 @@ extension CGPoint {
     static func middlePoint(_ lhs: CGPoint, _ rhs: CGPoint) -> CGPoint {
         CGPoint(x: (lhs.x + rhs.x) / 2, y: (lhs.y + rhs.y) / 2)
     }
-    
-    func applying(_ transform: Transform) -> CGPoint {
-        self.applying(transform.affineTransform)
-    }
 }
