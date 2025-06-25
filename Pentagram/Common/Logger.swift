@@ -5,12 +5,15 @@
 //  Created by Rodion Hladchenko on 25.06.2025.
 //
 
-@globalActor actor LoggerActor {
-    static var shared: LoggerActor = .init()
-}
-
-@LoggerActor
-final class Logger {
+@globalActor actor Logger {
+    static var shared: Logger {
+#if DEBUG
+        return Logger(.verbose)
+#else
+        return Logger(.info)
+#endif
+    }
+    
     private let rootLevel: Level
     
     init(_ level: Level = .info) {
@@ -18,7 +21,7 @@ final class Logger {
     }
     
     nonisolated func log(_ message: String, level: Level = .info) {
-        Task { @LoggerActor in
+        Task { @Logger in
             guard rootLevel.shouldLog(for: level) else { return }
             
             print(message)

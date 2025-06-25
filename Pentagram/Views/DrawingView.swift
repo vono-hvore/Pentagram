@@ -12,6 +12,7 @@ public class DrawingView: UIView {
     private let selectionView: UIView = RectangleSelectionView()
     private let interactiveView: UIView = .init()
     private var artCoordinator: ArtCoordinator = ArtCoordinator()
+    private let logger: Logger = .shared
     
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -105,16 +106,16 @@ private extension DrawingView {
     func handleTap(_ state: UIGestureRecognizer.State, point: CGPoint) async {
         switch state {
         case .began, .possible:
-            print("begin: \(point)")
+            logger.log("begin: \(point)", level: .verbose)
             await artCoordinator.receiveStartState(at: point)
         case .changed:
-            print("changed: \(point)")
+            logger.log("changed: \(point)", level: .verbose)
             await artCoordinator.receiveMovedState(to: point, dt: .zero)
         case .ended:
-            print("ended: \(point)")
+            logger.log("ended: \(point)", level: .verbose)
             await artCoordinator.receiveEndState(at: point)
         case .failed, .cancelled:
-            print("failed: \(point)")
+            logger.log("failed: \(point)", level: .verbose)
             await artCoordinator.receiveCancelledState()
         default: break
         }
@@ -123,16 +124,16 @@ private extension DrawingView {
     func handleRotation(_ state: UIGestureRecognizer.State, point: CGPoint, rotation: CGFloat) async {
         switch state {
         case .began:
-            print("begin: \(point)")
+            logger.log("begin: \(point)", level: .verbose)
             await artCoordinator.receiveRotationStart(at: point)
         case .changed:
-            print("changed: \(point)")
+            logger.log("changed: \(point)", level: .verbose)
             await artCoordinator.receiveRotation(radians: rotation)
         case .ended:
-            print("ended: \(point)")
+            logger.log("ended: \(point)", level: .verbose)
             await artCoordinator.receiveEndState(at: point)
         case .failed, .cancelled:
-            print("failed: \(point)")
+            logger.log("failed: \(point)", level: .verbose)
             await artCoordinator.receiveCancelledState()
         default: break
         }

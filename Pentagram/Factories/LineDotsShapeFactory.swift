@@ -47,6 +47,7 @@ actor LineDotsShapeFactory: ArtFactory, PointHandler {
     }
     
     func addPoint(_ point: CGPoint) async {
+        
         if let finalShape {
             complete(finalShape)
             return
