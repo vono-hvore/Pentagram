@@ -7,24 +7,23 @@
 
 import UIKit
 
-struct CircleShape: Shape {
-    let id: UUID = UUID()
-    let style: CircleShapeStyle
+public struct CircleShape: Shape {
+    public let style: CircleShapeStyle
     let rect: CGRect
     
-    init(
+    public init(
         _ rect: CGRect,
-        style: ShapeStyle = CircleShapeStyle()
+        style: CircleShapeStyle = CircleShapeStyle()
     ) {
         self.rect = rect
         self.style = style
     }
     
-    func move(by point: CGPoint) -> CircleShape {
+    public func move(by point: CGPoint) -> CircleShape {
         .init(rect, style: style)
     }
     
-    func render(in context: CGContext) {
+    public func render(in context: CGContext) {
         context.saveGState()
         
         style.render(in: context)
@@ -34,16 +33,15 @@ struct CircleShape: Shape {
         context.restoreGState()
     }
     
-    func hitTest(_ point: CGPoint) -> Bool {
+    public func hitTest(_ point: CGPoint) -> Bool {
         rect.contains(point)
     }
     
-    
-    func anchor(at point: CGPoint) -> Self {
+    public func setAnchor(at point: CGPoint) -> Self {
         self
     }
     
-    func rotate(by radians: CGFloat) -> Self {
+    public func rotate(by radians: CGFloat) -> Self {
         self
     }
     
@@ -54,7 +52,7 @@ struct CircleShape: Shape {
 
 // MARK: - Style
 
-extension CircleShape {
+public extension CircleShape {
     struct CircleShapeStyle: HasFillStyle, HasStrokeStyle {
         public let color: UIColor
         public let strokeColor: UIColor

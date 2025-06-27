@@ -7,14 +7,10 @@
 
 import Foundation
 
-protocol Shape:
-    Transformable,
-    Render,
-    Identifiable {
+public protocol Shape: Transformable, Render, Sendable {
     associatedtype ShapeStyle: Style
-    
     var style: ShapeStyle { get }
     
     func hitTest(_ point: CGPoint) -> Bool
-    func anchor(at point: CGPoint) -> Self
+    func setAnchor(at point: CGPoint) -> Self
 }

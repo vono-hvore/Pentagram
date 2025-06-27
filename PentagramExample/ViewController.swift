@@ -65,7 +65,7 @@ class Drawing: UIView {
 }
 
 class ViewController: UIViewController {
-    var drawingView: DrawingView = .init()
+    var drawingView: DrawingView!
     let toolBar: UIToolbar = .init()
     
     override func viewDidLoad() {
@@ -76,7 +76,22 @@ class ViewController: UIViewController {
     }
     
     private func setupDrawingView() {
-        drawingView = .init(frame: view.frame)
+        let dotRadius = CGFloat(7)
+        let shapeFactory = DotsShapeFactory(pointsCount: 2) { points in
+            LineDotsImageShape(
+                points[0],
+                points[1],
+                dotRadius: dotRadius,
+                image: "arrow.right.square"
+            )
+        } draft: { point in
+            CircleShape(.init(
+                centroid: .init(x: point.x, y: point.y),
+                width: dotRadius * 2,
+                hedith: dotRadius * 2
+            ))
+        }
+        drawingView = .init(shapePointsFactories: [.line: shapeFactory], frame: view.bounds)
         view.addSubview(drawingView)
     }
     

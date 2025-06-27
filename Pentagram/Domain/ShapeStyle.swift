@@ -7,28 +7,28 @@
 
 import UIKit
 
-protocol Style: Render {}
+public protocol Style: Render {}
 
-protocol HasFillStyle: Style {
+public protocol HasFillStyle: Style {
     var color: UIColor { get }
 }
 
-protocol HasLineStyle: Style {
+public protocol HasLineStyle: Style {
     var lineJoin: CGLineJoin { get }
     var lineCap: CGLineCap { get }
 }
 
-protocol HasStrokeStyle: Style {
+public protocol HasStrokeStyle: Style {
     var strokeColor: UIColor { get }
     var strokeWidth: CGFloat { get }
 }
 
-protocol HasDashPattern: Style {
+public protocol HasDashPattern: Style {
     var phase: CGFloat { get }
     var lengths: [CGFloat] { get }
 }
 
-extension Style {
+public extension Style {
     func render(in context: CGContext) {
         if case let style as HasFillStyle = self {
             context.setFillColor(style.color.cgColor)

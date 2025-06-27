@@ -11,10 +11,11 @@ public class DrawingView: UIView {
     private let contentView: UIView = .init()
     private let selectionView: UIView = RectangleSelectionView()
     private let interactiveView: UIView = .init()
-    private var artCoordinator: ArtCoordinator = ArtCoordinator()
+    private var artCoordinator: ArtCoordinator
     private let logger: Logger = .shared
     
-    public override init(frame: CGRect) {
+    public init(shapePointsFactories: [Tool: PointFactory], frame: CGRect) {
+        self.artCoordinator = .init(shapePointsFactories: shapePointsFactories)
         super.init(frame: frame)
         isOpaque = true
         backgroundColor = .clear

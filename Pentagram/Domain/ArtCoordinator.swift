@@ -19,9 +19,13 @@ class ArtCoordinator {
     private var tool: Tool = .line
     private var artists: [Picasso] = []
     private var picasso: Picasso = .init()
-    private lazy var factory: LineDotsShapeFactory = {
-        .init(self, dotRadius: 7)
-    }()
+    private var shapePointsFactories: [Tool: PointFactory]
+    
+    init(
+        shapePointsFactories: [Tool: PointFactory] = [:]
+    ) {
+        self.shapePointsFactories = shapePointsFactories
+    }
     
     func draw(in context: CGContext) {
         artists.forEach { $0.draw(in: context) }
@@ -80,7 +84,9 @@ extension ArtCoordinator: GestureObservable {
             }
             picasso = .init()
         case .line:
-            await factory.addPoint(point)
+            let factory = shapePointsFactories[tool]
+            await factory?.setDelegate(self)
+            await factory?.addPoint(point)
         }
     }
     
@@ -97,15 +103,15 @@ extension ArtCoordinator: GestureObservable {
 }
 
 extension ArtCoordinator: ArtHandler {
-    func complete(_ shape: any Shape) {
+    func complete(_ shape: some Shape) async {
         picasso.erase()
         picasso.order(shape)
         artists.append(picasso)
-        factory = LineDotsShapeFactory(self, dotRadius: 7)
         picasso = .init()
+        shapePointsFactories[tool] = await shapePointsFactories[tool]?.complete()
     }
     
-    func inProgerss(_ draft: any Shape) {
+    func inProgerss(_ draft: some Shape) {
         picasso.order(draft)
     }
 }

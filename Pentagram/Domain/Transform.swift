@@ -7,10 +7,7 @@
 
 import Foundation
 
-protocol Transformable {
-    // var rect
-    //var transform: Transform { get }
-    //func tranform(_ transform: Transform) -> Self
-    func move(by delta: CGPoint) -> Self // calculate it by rect
+public protocol Transformable {
+    func move(by delta: CGPoint) -> Self
     func rotate(by radians: CGFloat) -> Self
 }

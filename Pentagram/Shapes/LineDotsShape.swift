@@ -7,16 +7,20 @@
 
 import UIKit
 
-struct LineDotsShape: Shape {
-    let id: UUID = UUID()
-    let style: LineDotsShapeStyle
+// TODO:
+// 1. Does anchor must be a part of the shape?
+// 2. Think about LazyWrapper for Shape
+// 3. Does i need COW here?
+
+public struct LineDotsShape: Shape {
+    public let start: CGPoint
+    public let end: CGPoint
+    public let style: LineDotsShapeStyle
+    public let anchor: Anchor
     private let transform: CGAffineTransform = .identity
-    private let anchor: Anchor
     private let dotRadius: CGFloat
-    private let start: CGPoint
-    private let end: CGPoint
     
-    init(
+    public init(
         _ start: CGPoint,
         _ end: CGPoint,
         dotRadius: CGFloat,
@@ -30,8 +34,7 @@ struct LineDotsShape: Shape {
         self.style = style
     }
     
-    
-    func render(in context: CGContext) {
+    public func render(in context: CGContext) {
         context.saveGState()
         style.lineStyle.stroke.render(in: context)
         context.move(to: start)
@@ -59,17 +62,17 @@ struct LineDotsShape: Shape {
         context.restoreGState()
     }
     
-    func hitTest(_ point: CGPoint) -> Bool {
+    public func hitTest(_ point: CGPoint) -> Bool {
         findAnchor(at: point) != nil
     }
     
-    func anchor(at point: CGPoint) -> Self {
+    public func setAnchor(at point: CGPoint) -> Self {
         guard let newAnchor = findAnchor(at: point) else { return self }
         
         return .init(start, end, dotRadius: dotRadius, anchor: newAnchor, style: style)
     }
     
-    func findAnchor(at point: CGPoint) -> Anchor? {
+    private func findAnchor(at point: CGPoint) -> Anchor? {
         var threshold: CGFloat = 25
         let startRect = CGRect(
             centroid: start,
@@ -110,7 +113,7 @@ struct LineDotsShape: Shape {
 
 // MARK: - Transform
 
-extension LineDotsShape {
+public extension LineDotsShape {
     func move(by delta: CGPoint) -> Self {
         return switch anchor {
         case .startDot:
@@ -170,8 +173,8 @@ extension LineDotsShape {
 
 // MARK: - Anchor
 
-extension LineDotsShape {
-    enum Anchor {
+public extension LineDotsShape {
+    enum Anchor: Sendable {
         case startDot(CGPoint)
         case endDot(CGPoint)
         case line(CGPoint)
@@ -180,12 +183,12 @@ extension LineDotsShape {
 
 // MARK: - Style
 
-extension LineDotsShape {
+public extension LineDotsShape {
     struct LineDotsShapeStyle: Style {
-        let lineStyle: LineShape.LineShapeStyle
-        let circleStyle: CircleShape.CircleShapeStyle
+        public let lineStyle: LineShape.LineShapeStyle
+        public let circleStyle: CircleShape.CircleShapeStyle
         
-        init(
+        public init(
             lineStyle: LineShape.LineShapeStyle = .init(),
             circleStyle: CircleShape.CircleShapeStyle = .init()
         ) {

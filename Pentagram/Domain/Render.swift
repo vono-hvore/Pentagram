@@ -7,7 +7,7 @@
 
 import UIKit
 
-protocol Render: Sendable {
+public protocol Render: Sendable {
     func render(in context: CGContext)
 }
 

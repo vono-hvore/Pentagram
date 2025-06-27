@@ -24,7 +24,7 @@ struct Picasso {
         shapes.contains { $0.hitTest(point) }
     }
     
-    mutating func order(_ shape: any Shape) {
+    mutating func order(_ shape: some Shape) {
         shapes.append(shape)
     }
     
@@ -35,7 +35,7 @@ struct Picasso {
     mutating func setAnchor(_ point: CGPoint) {
         anchor = point
         rotation = .zero
-        shapes = shapes.map { $0.anchor(at: point) }
+        shapes = shapes.map { $0.setAnchor(at: point) }
     }
     
     mutating func move(to point: CGPoint) {

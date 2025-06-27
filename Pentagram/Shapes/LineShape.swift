@@ -8,23 +8,23 @@
 import UIKit
 import QuartzCore
 
-struct LineShape: Shape {
+public struct LineShape: Shape {
     let id: UUID = UUID()
-    let style: LineShapeStyle
+    public let style: LineShapeStyle
     private let start: CGPoint
     private let end: CGPoint
     
-    init(
+    public init(
         _ start: CGPoint,
         _ end: CGPoint,
-        style: ShapeStyle = LineShapeStyle()
+        style: LineShapeStyle = LineShapeStyle()
     ) {
         self.start = start
         self.end = end
         self.style = style
     }
     
-    func move(by point: CGPoint) -> LineShape {
+    public func move(by point: CGPoint) -> LineShape {
         .init(start, end, style: style)
     }
     
@@ -44,44 +44,44 @@ struct LineShape: Shape {
         context.restoreGState()
     }
     
-    func anchor(at point: CGPoint) -> Self {
+    public func setAnchor(at point: CGPoint) -> Self {
         return self
     }
     
-    func hitTest(_ point: CGPoint) -> Bool {
+    public func hitTest(_ point: CGPoint) -> Bool {
         CGPoint.distance(start, point) == CGPoint.distance(end, point)
     }
     
-    func rotate(by radians: CGFloat) -> LineShape {
+    public func rotate(by radians: CGFloat) -> LineShape {
         self
     }
     
-    func scale(by delta: CGFloat) -> LineShape {
+    public func scale(by delta: CGFloat) -> LineShape {
         self
     }
 }
 
 // MARK: - Style
 
-extension LineShape {
+public extension LineShape {
     struct LineShapeStyle: HasFillStyle, HasStrokeStyle, HasLineStyle {
-        struct LineShapStrokeStyle: HasStrokeStyle {
-            let strokeColor: UIColor
-            let strokeWidth: CGFloat
+        public struct LineShapStrokeStyle: HasStrokeStyle {
+            public let strokeColor: UIColor
+            public let strokeWidth: CGFloat
             
-            init(strokeColor: UIColor = .black, strokeWidth: CGFloat = 5) {
+            public init(strokeColor: UIColor = .black, strokeWidth: CGFloat = 5) {
                 self.strokeColor = strokeColor
                 self.strokeWidth = strokeWidth
             }
         }
         
-        let color: UIColor
         let lineWidth: CGFloat
-        var strokeColor: UIColor { color }
-        var strokeWidth: CGFloat { lineWidth }
         let stroke: LineShapStrokeStyle
-        let lineCap: CGLineCap
-        let lineJoin: CGLineJoin
+        public let color: UIColor
+        public var strokeColor: UIColor { color }
+        public var strokeWidth: CGFloat { lineWidth }
+        public let lineCap: CGLineCap
+        public let lineJoin: CGLineJoin
         
         public init(
             color: UIColor = .red,
