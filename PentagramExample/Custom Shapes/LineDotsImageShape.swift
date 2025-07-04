@@ -17,6 +17,11 @@ struct LineDotsImageShape: Shape {
     private let start: CGPoint
     private let end: CGPoint
     private let dotRadius: CGFloat
+    private let showLabels: Bool
+    private let startLabel: String
+    private let endLabel: String
+    private let labelFont: UIFont
+    private let labelColor: UIColor
     
     init(
         _ start: CGPoint,
@@ -24,7 +29,12 @@ struct LineDotsImageShape: Shape {
         dotRadius: CGFloat = 7,
         image: String,
         anchor: LineDotsShape.Anchor = .line(.zero),
-        style: LineDotsShape.LineDotsShapeStyle = .init()
+        style: LineDotsShape.LineDotsShapeStyle = .init(),
+        showLabels: Bool = true,
+        startLabel: String = "A",
+        endLabel: String = "B",
+        labelFont: UIFont = .systemFont(ofSize: 14, weight: .bold),
+        labelColor: UIColor = .black
     ) {
         self.start = start
         self.end = end
@@ -32,12 +42,20 @@ struct LineDotsImageShape: Shape {
         self.style = style
         self.dotRadius = dotRadius
         self.anchor = anchor
+        self.showLabels = showLabels
+        self.startLabel = startLabel
+        self.endLabel = endLabel
+        self.labelFont = labelFont
+        self.labelColor = labelColor
         self.lineDotsShape = .init(start, end, dotRadius: dotRadius, anchor: anchor, style: style)
     }
     
     func render(in context: CGContext) {
         lineDotsShape.render(in: context)
         drawImageAlongLine(in: context)
+        if showLabels {
+            drawEndpointLabels(in: context)
+        }
     }
     
     func hitTest(_ point: CGPoint) -> Bool {
@@ -46,19 +64,52 @@ struct LineDotsImageShape: Shape {
     
     func setAnchor(at point: CGPoint) -> LineDotsImageShape {
         let shape = lineDotsShape.setAnchor(at: point)
-        return .init(start, end, dotRadius: dotRadius, image: image, anchor: shape.anchor, style: style)
+        return .init(
+            start, end, 
+            dotRadius: dotRadius, 
+            image: image, 
+            anchor: shape.anchor, 
+            style: style,
+            showLabels: showLabels,
+            startLabel: startLabel,
+            endLabel: endLabel,
+            labelFont: labelFont,
+            labelColor: labelColor
+        )
     }
     
     func move(by delta: CGPoint) -> LineDotsImageShape {
         let shape = lineDotsShape.move(by: delta)
         
-        return .init(shape.start, shape.end, dotRadius: dotRadius, image: image, anchor: anchor, style: style)
+        return .init(
+            shape.start, shape.end, 
+            dotRadius: dotRadius, 
+            image: image, 
+            anchor: anchor, 
+            style: style,
+            showLabels: showLabels,
+            startLabel: startLabel,
+            endLabel: endLabel,
+            labelFont: labelFont,
+            labelColor: labelColor
+        )
     }
     
     func rotate(by radians: CGFloat) -> LineDotsImageShape {
         let shape = lineDotsShape.rotate(by: radians)
         
-        return .init(shape.start, shape.end, dotRadius: dotRadius, image: image, anchor: anchor, style: style)
+        return .init(
+            shape.start, shape.end, 
+            dotRadius: dotRadius, 
+            image: image, 
+            anchor: anchor, 
+            style: style,
+            showLabels: showLabels,
+            startLabel: startLabel,
+            endLabel: endLabel,
+            labelFont: labelFont,
+            labelColor: labelColor
+        )
     }
     
     func drawImageAlongLine(in context: CGContext) {
@@ -84,5 +135,53 @@ struct LineDotsImageShape: Shape {
         }
 
         context.restoreGState()
+    }
+    
+    func drawEndpointLabels(in context: CGContext) {
+        context.saveGState()
+        
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        let middlePoint = CGPoint.middlePoint(start, end)
+        let rotationAngle = atan2(dy, dx) + .pi / 2
+        let offset: CGFloat = dotRadius * 2.5 + 20
+        
+        let startLabelPoint = CGPoint(
+            x: middlePoint.x - offset * cos(rotationAngle),
+            y: middlePoint.y - offset * sin(rotationAngle)
+        )
+        drawLabel(startLabel, at: startLabelPoint, in: context)
+        
+        let endLabelPoint = CGPoint(
+            x: middlePoint.x + offset * cos(rotationAngle),
+            y: middlePoint.y + offset * sin(rotationAngle)
+        )
+        drawLabel(endLabel, at: endLabelPoint, in: context)
+        
+        context.restoreGState()
+    }
+    
+    private func drawLabel(_ text: String, at point: CGPoint, in context: CGContext) {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: labelFont,
+            .foregroundColor: labelColor
+        ]
+        
+        let textSize = text.size(withAttributes: attributes)
+        let textRect = CGRect(
+            x: point.x - textSize.width / 2,
+            y: point.y - textSize.height / 2,
+            width: textSize.width,
+            height: textSize.height
+        )
+        
+        text.draw(in: textRect, withAttributes: attributes)
+    }
+}
+
+private extension CGContext {
+    func drawText(_ text: String, at point: CGPoint, attributes: [NSAttributedString.Key: Any]) {
+        let attributedString = NSAttributedString(string: text, attributes: attributes)
+        attributedString.draw(at: point)
     }
 }
