@@ -1,16 +1,19 @@
 //
 //  Shape.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 20.06.2025.
 //
 
-import Foundation
+import CoreGraphics
 
 public protocol Shape: Transformable, Render, Sendable {
     associatedtype ShapeStyle: Style
     var style: ShapeStyle { get }
     
     func hitTest(_ point: CGPoint) -> Bool
-    func setAnchor(at point: CGPoint) -> Self
+    mutating func setAnchor(at point: CGPoint) -> Self
+}
+
+@MainActor
+public protocol Transformable {
+    func move(by delta: CGPoint) -> Self
+    func rotate(by radians: CGFloat) -> Self
 }

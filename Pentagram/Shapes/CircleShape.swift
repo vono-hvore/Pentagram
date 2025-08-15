@@ -1,32 +1,22 @@
 //
 //  DotShape.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 20.06.2025.
 //
 
 import UIKit
 
 public struct CircleShape: Shape {
     public let style: CircleShapeStyle
-    let rect: CGRect
+    private let rect: CGRect
     
-    public init(
-        _ rect: CGRect,
-        style: CircleShapeStyle = CircleShapeStyle()
-    ) {
+    public init(_ rect: CGRect, style: CircleShapeStyle = .default) {
         self.rect = rect
         self.style = style
     }
     
-    public func move(by point: CGPoint) -> CircleShape {
-        .init(rect, style: style)
-    }
-    
-    public func render(in context: CGContext) {
+    public func draw(in context: CGContext) {
         context.saveGState()
         
-        style.render(in: context)
+        style.draw(in: context)
         context.addEllipse(in: rect)
         context.drawPath(using: .fillStroke)
         
@@ -37,16 +27,19 @@ public struct CircleShape: Shape {
         rect.contains(point)
     }
     
-    public func setAnchor(at point: CGPoint) -> Self {
-        self
-    }
+    public func setAnchor(at point: CGPoint) -> Self { self }
     
-    public func rotate(by radians: CGFloat) -> Self {
-        self
-    }
+    public func rotate(by radians: CGFloat) -> Self { self }
     
-    func scale(by delta: CGFloat) -> Self {
-        self
+    public func move(by delta: CGPoint) -> CircleShape {
+        .init(
+            .init(
+                centroid: rect.origin + delta,
+                width: rect.width,
+                height: rect.height
+            ),
+            style: style
+        )
     }
 }
 
@@ -54,26 +47,28 @@ public struct CircleShape: Shape {
 
 public extension CircleShape {
     struct CircleShapeStyle: HasFillStyle, HasStrokeStyle {
-        public let color: UIColor
+        public let fillColor: UIColor
         public let strokeColor: UIColor
         public let strokeWidth: CGFloat
         
-        public init() {
-            self.init(
-                color: .red,
-                strokeColor: .black,
-                strokeWidth: 1
-            )
-        }
-        
         public init(
-            color: UIColor,
+            fillColor: UIColor,
             strokeColor: UIColor,
             strokeWidth: CGFloat
         ) {
-            self.color = color
+            self.fillColor = fillColor
             self.strokeColor = strokeColor
             self.strokeWidth = strokeWidth
         }
+    }
+}
+
+public extension CircleShape.CircleShapeStyle {
+    static var `default`: Self {
+        .init(
+            fillColor: .red,
+            strokeColor: .black,
+            strokeWidth: 1
+        )
     }
 }

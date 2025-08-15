@@ -1,117 +1,125 @@
 //
 //  ArtCoordinator.swift
-//  Pentagram
-//
-//  Created by Rodion Hladchenko on 20.06.2025.
 //
 
 import Foundation
 import UIKit
 
-public enum Tool {
-    case line
-    case select
+public typealias ArtCoordinatorProtocol = GestureObservable & Render
+
+public extension ArtCoordinator {
+    enum ActionTool {
+        case draw(ShapeType)
+        case move
+        case freeze
+    }
 }
 
 @MainActor
-class ArtCoordinator {
-    let id: UUID = UUID()
-    private var tool: Tool = .line
-    private var artists: [Picasso] = []
-    private var picasso: Picasso = .init()
-    private var shapePointsFactories: [Tool: PointFactory]
+public final class ArtCoordinator<ShapeType: Hashable>: ArtCoordinatorProtocol {
+    private var tool: ActionTool = .move
+    private var containers: [ShapeContainer] = []
+    private var currentContainer: ShapeContainer = .init()
+    private var factories: [ShapeType: any ShapeFactory]
     
-    init(
-        shapePointsFactories: [Tool: PointFactory] = [:]
+    public init(
+        factories: [ShapeType: any ShapeFactory]
     ) {
-        self.shapePointsFactories = shapePointsFactories
+        self.factories = factories
     }
     
-    func draw(in context: CGContext) {
-        artists.forEach { $0.draw(in: context) }
-        picasso.draw(in: context)
+    public func draw(in context: CGContext) {
+        containers.forEach { $0.draw(in: context) }
+        currentContainer.draw(in: context)
     }
     
-    func select(tool newTool: Tool) {
+    public func select(tool newTool: ActionTool) {
         tool = newTool
     }
+    
+    public func eraseAll() {
+        containers = []
+        currentContainer.eraseAll()
+    }
+    
+    public func addPoint(at point: CGPoint) {
+        if case let .draw(shapeType) = tool, let factory = factories[shapeType] {
+            factory.make(with: point) { finalShape in
+                currentContainer.eraseAll()
+                currentContainer.add(shape: finalShape)
+                containers.append(currentContainer)
+                currentContainer = .init()
+            } rawDraft: { draft in
+                currentContainer.add(shape: draft)
+            }
+        }
+    }
 }
 
-extension ArtCoordinator: GestureObservable {
-    func receiveRotationStart(at point: CGPoint) async {
+// MARK: - Gesture Observable
+
+extension ArtCoordinator {
+    public func receiveRotationStart(at point: CGPoint) {
         switch tool {
-        case .select:
-            picasso = artists.removeLast()
-            picasso.setAnchor(point)
-        case .line: break
-        }
-    }
-    
-    func receiveRotation(radians: CGFloat) async {
-        switch tool {
-        case .select:
-            picasso.rotate(by: radians)
-        case .line: break
-        }
-    }
-    
-    func receiveStartState(at point: CGPoint) async {
-        switch tool {
-        case .select:
-            let picassoIndex = artists.lastIndex { $0.contains(point) }
-            guard let picassoIndex else { return }
+        case .move:
+            let currentContainerIndex = containers.lastIndex { $0.contains(point: point) }
+            guard let currentContainerIndex else { return }
             
-            picasso = artists.remove(at: picassoIndex)
-            picasso.setAnchor(point)
-        case .line:
-            break
+            currentContainer = containers.remove(at: currentContainerIndex)
+            currentContainer.setAnchor(at: point)
+        case .draw, .freeze: break
         }
     }
     
-    func receiveMovedState(to point: CGPoint, dt: TimeInterval) async {
+    public func receiveRotation(radians: CGFloat) {
         switch tool {
-        case .select:
-            picasso.move(to: point)
-        case .line: break
+        case .move:
+            currentContainer.rotate(by: radians)
+        case .draw, .freeze: break
         }
     }
     
-    func receiveEndState(at point: CGPoint) async {
+    public func receiveStartState(at point: CGPoint) {
         switch tool {
-        case .select:
-            if picasso.containsShapes {
-                artists.append(picasso)
+        case .move:
+            let currentContainerIndex = containers.lastIndex { $0.contains(point: point) }
+            guard let currentContainerIndex else { return }
+            
+            currentContainer = containers.remove(at: currentContainerIndex)
+            currentContainer.setAnchor(at: point)
+        case .draw, .freeze: break
+        }
+    }
+    
+    public func receiveMovedState(to point: CGPoint, dt: TimeInterval) {
+        switch tool {
+        case .move:
+            currentContainer.move(to: point)
+        case .draw, .freeze: break
+        }
+    }
+    
+    public func receiveEndState(at point: CGPoint) {
+        switch tool {
+        case .move:
+            if currentContainer.containsShapes {
+                containers.append(currentContainer)
             }
-            picasso = .init()
-        case .line:
-            let factory = shapePointsFactories[tool]
-            await factory?.setDelegate(self)
-            await factory?.addPoint(point)
+            currentContainer = .init()
+        case .draw:
+            addPoint(at: point)
+        case .freeze: break
         }
     }
     
-    func receiveCancelledState() async {
+    public func receiveCancelledState() {
         switch tool {
-        case .select:
-            if picasso.containsShapes {
-                artists.append(picasso)
+        case .move:
+            if currentContainer.containsShapes {
+                containers.append(currentContainer)
             }
-            picasso = .init()
-        case .line: break
+            currentContainer = .init()
+        case .draw, .freeze: break
         }
-    }
-}
-
-extension ArtCoordinator: ArtHandler {
-    func complete(_ shape: some Shape) async {
-        picasso.erase()
-        picasso.order(shape)
-        artists.append(picasso)
-        picasso = .init()
-        shapePointsFactories[tool] = await shapePointsFactories[tool]?.complete()
-    }
-    
-    func inProgerss(_ draft: some Shape) {
-        picasso.order(draft)
     }
 }

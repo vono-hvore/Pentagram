@@ -1,15 +1,23 @@
 //
 //  EmptyShape.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 28.06.2025.
 //
 
 import Foundation
 import CoreGraphics
 
 public struct EmptyShape: Shape {
-    public var style: LineShape.LineShapeStyle = .init()
+    public var style: LineShape.LineShapeStyle = .init(
+        fillColor: .clear,
+        strokeColor: .clear,
+        strokeWidth: .zero,
+        lineWidth: .zero,
+        lineCap: .square,
+        lineJoin: .round
+    )
+    
+    public init() {}
+    
+    public func draw(in context: CGContext) { }
     
     public func hitTest(_ point: CGPoint) -> Bool { false }
     
@@ -18,6 +26,4 @@ public struct EmptyShape: Shape {
     public func move(by delta: CGPoint) -> EmptyShape { self }
     
     public func rotate(by radians: CGFloat) -> EmptyShape { self }
-    
-    public func render(in context: CGContext) { }
 }

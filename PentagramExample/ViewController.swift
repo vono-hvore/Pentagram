@@ -9,6 +9,10 @@ import Foundation
 import UIKit
 import Pentagram
 
+private enum ShapeType {
+    case lineDots
+}
+
 class Drawing: UIView {
     var points: [CGPoint] = []
     
@@ -65,7 +69,8 @@ class Drawing: UIView {
 }
 
 class ViewController: UIViewController {
-    var drawingView: DrawingView!
+    private var drawingView: GeometricalDrawingView!
+    private var artCoordinator: ArtCoordinator<ShapeType>!
     let toolBar: UIToolbar = .init()
     
     override func viewDidLoad() {
@@ -75,23 +80,34 @@ class ViewController: UIViewController {
         setupToolBar()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        drawingView.frame = view.bounds
+    }
+    
     private func setupDrawingView() {
         let dotRadius = CGFloat(7)
-        let shapeFactory = DotsShapeFactory(pointsCount: 2) { points in
-            LineDotsImageShape(
-                points[0],
-                points[1],
-                dotRadius: dotRadius,
-                image: "arrow.right.square"
-            )
-        } draft: { point in
-            CircleShape(.init(
-                centroid: .init(x: point.x, y: point.y),
-                width: dotRadius * 2,
-                hedith: dotRadius * 2
-            ))
+        let shapeFactory = PointShapeFactory { points in
+            if points.count == 2 {
+                return .final(shape: LineDotsShape(
+                    points[0],
+                    points[1],
+                    dotRadius: dotRadius
+                ))
+            } else {
+                let point = points.last ?? .zero
+                return .draft(shape: CircleShape(.init(
+                    centroid: .init(x: point.x, y: point.y),
+                    width: dotRadius * 2,
+                    height: dotRadius * 2
+                )))
+            }
         }
-        drawingView = .init(shapePointsFactories: [.line: shapeFactory], frame: view.bounds)
+        artCoordinator = .init(factories: [
+            ShapeType.lineDots : shapeFactory
+        ])
+        drawingView = .init(artCoordinator: artCoordinator)
         view.addSubview(drawingView)
     }
     
@@ -102,27 +118,153 @@ class ViewController: UIViewController {
         toolBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         toolBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         
-        toolBar.items = [
-            .init(
-                image: .init(systemName: "line.diagonal"),
-                style: .plain,
-                target: self,
-                action: #selector(lineTool)
-            ),
+        let items: [UIBarButtonItem] = [
+            .flexibleSpace(),
+            // Selection Tool
             .init(
                 image: .init(systemName: "hand.point.up.left.fill"),
                 style: .plain,
                 target: self,
                 action: #selector(selectTool)
-            )
+            ),
+            // Selection Tool
+            .init(
+                image: .init(systemName: "lasso"),
+                style: .plain,
+                target: self,
+                action: #selector(selectTool)
+            ),
+            .init(
+                image: .init(systemName: "pencil"),
+                style: .plain,
+                target: self,
+                action: #selector(selectTool)
+            ),
+            // Shapes Menu
+            .init(
+                image: .init(systemName: "triangle"),
+                menu: createShapesMenu()
+            ),
+            // Arrows Menu
+            .init(
+                image: .init(systemName: "arrow.up.forward"),
+                menu: createArrowsMenu()
+            ),
+            // Curves Menu
+            .init(
+                image: .init(systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
+                menu: createCurvesMenu()
+            ),
+            // Mask Menu
+            .init(
+                image: .init(systemName: "square.2.layers.3d.bottom.filled"),
+                menu: createMaskMenu()
+            ),
+            // Color Picker
+            .init(
+                image: .init(systemName: "paintbrush.fill"),
+                style: .plain,
+                target: self,
+                action: #selector(showColorPicker)
+            ),
+            // Clear Tool
+            .init(
+                image: .init(systemName: "delete.left.fill"),
+                style: .plain,
+                target: self,
+                action: #selector(clearTool)
+            ),
+            .flexibleSpace()
         ]
-    }
-    
-    @objc private func lineTool() {
-        drawingView.select(tool: .line)
+        
+        toolBar.setItems(items, animated: false)
     }
     
     @objc private func selectTool() {
-        drawingView.select(tool: .select)
+        artCoordinator.select(tool: .move)
+    }
+    
+    @objc private func clearTool() {
+        artCoordinator.eraseAll()
+        drawingView.setNeedsDisplay()
+    }
+    
+    @objc private func showColorPicker() {
+        let colorPicker = UIColorPickerViewController()
+        colorPicker.delegate = self
+        colorPicker.selectedColor = .red // Default color
+        colorPicker.supportsAlpha = true
+        present(colorPicker, animated: true)
+    }
+    
+    // MARK: - Menu Creation
+    
+    private func createShapesMenu() -> UIMenu {
+        
+        
+        let circleAction = UIAction(title: "Circle", image: UIImage(systemName: "circle")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        let rectangleAction = UIAction(title: "Rectangle", image: UIImage(systemName: "rectangle")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        let triangleAction = UIAction(title: "Triangle", image: UIImage(systemName: "triangle")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        return UIMenu(title: "Shapes", children: [circleAction, rectangleAction, triangleAction])
+    }
+    
+    private func createArrowsMenu() -> UIMenu {
+        let simpleArrowAction = UIAction(title: "Simple Arrow", image: UIImage(systemName: "arrow.up.forward")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        let curvedArrowAction = UIAction(title: "Curved Arrow", image: UIImage(systemName: "arrow.turn.up.right")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        return UIMenu(title: "Arrows", children: [simpleArrowAction, curvedArrowAction])
+    }
+    
+    private func createCurvesMenu() -> UIMenu {
+        let bezierAction = UIAction(title: "Bezier Curve", image: UIImage(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        let lineAction = UIAction(title: "Polyline", image: UIImage(systemName: "point.3.connected.trianglepath.dotted")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+
+        return UIMenu(title: "Complex", children: [bezierAction, lineAction])
+    }
+    
+    private func createMaskMenu() -> UIMenu {
+        let layersAction = UIAction(title: "Add", image: UIImage(systemName: "square.2.layers.3d.fill")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        let bottomLayerAction = UIAction(title: "Subtract", image: UIImage(systemName: "square.2.layers.3d.bottom.filled")) { _ in
+            self.artCoordinator.select(tool: .draw(.lineDots))
+        }
+        
+        return UIMenu(title: "Mask", children: [layersAction, bottomLayerAction])
+    }
+}
+
+// MARK: - UIColorPickerViewControllerDelegate
+
+extension ViewController: UIColorPickerViewControllerDelegate {
+    func colorPickerViewControllerDidSelectColor(_ viewController: UIColorPickerViewController) {
+        let selectedColor = viewController.selectedColor
+        // Here you can update the current drawing color
+        // For example, you might want to store it in a property and use it when creating shapes
+        print("Selected color: \(selectedColor)")
+    }
+    
+    func colorPickerViewControllerDidFinish(_ viewController: UIColorPickerViewController) {
+        dismiss(animated: true)
     }
 }

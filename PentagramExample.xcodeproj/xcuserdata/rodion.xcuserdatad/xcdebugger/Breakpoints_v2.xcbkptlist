@@ -15,9 +15,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "75"
-            endingLineNumber = "75"
-            landmarkName = "init(color:strokeColor:strokeWidth:)"
-            landmarkType = "7">
+            endingLineNumber = "75">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -144,7 +142,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "81"
             endingLineNumber = "81"
-            landmarkName = "findAnchor(at:)"
+            landmarkName = "move(by:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -224,7 +222,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "39"
             endingLineNumber = "39"
-            landmarkName = "render(in:)"
+            landmarkName = "init(_:_:dotRadius:image:anchor:style:showLabels:startLabel:endLabel:labelFont:labelColor:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

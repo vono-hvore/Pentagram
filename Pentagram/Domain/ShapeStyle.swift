@@ -1,8 +1,5 @@
 //
 //  ShapeStyle.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 05.06.2025.
 //
 
 import UIKit
@@ -10,7 +7,7 @@ import UIKit
 public protocol Style: Render {}
 
 public protocol HasFillStyle: Style {
-    var color: UIColor { get }
+    var fillColor: UIColor { get }
 }
 
 public protocol HasLineStyle: Style {
@@ -29,9 +26,9 @@ public protocol HasDashPattern: Style {
 }
 
 public extension Style {
-    func render(in context: CGContext) {
+    func draw(in context: CGContext) {
         if case let style as HasFillStyle = self {
-            context.setFillColor(style.color.cgColor)
+            context.setFillColor(style.fillColor.cgColor)
         }
         
         if case let style as HasStrokeStyle = self {
