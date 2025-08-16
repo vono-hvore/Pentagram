@@ -2,8 +2,8 @@
 //  EmptyShape.swift
 //
 
-import Foundation
 import CoreGraphics
+import Foundation
 
 public struct EmptyShape: Shape {
     public var style: LineShape.LineShapeStyle = .init(
@@ -14,16 +14,16 @@ public struct EmptyShape: Shape {
         lineCap: .square,
         lineJoin: .round
     )
-    
+
     public init() {}
-    
-    public func draw(in context: CGContext) { }
-    
-    public func hitTest(_ point: CGPoint) -> Bool { false }
-    
-    public func setAnchor(at point: CGPoint) -> EmptyShape { self }
-    
-    public func move(by delta: CGPoint) -> EmptyShape { self }
-    
-    public func rotate(by radians: CGFloat) -> EmptyShape { self }
+
+    public func draw(in _: CGContext) {}
+
+    public func hitTest(_: CGPoint) -> Bool { false }
+
+    public func setAnchor(at _: CGPoint) -> EmptyShape { self }
+
+    public func move(by _: CGPoint) -> EmptyShape { self }
+
+    public func rotate(by _: CGFloat) -> EmptyShape { self }
 }

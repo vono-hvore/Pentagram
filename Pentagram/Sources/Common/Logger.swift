@@ -7,23 +7,23 @@
 
 @globalActor actor Logger {
     static var shared: Logger {
-#if DEBUG
-        return Logger(.verbose)
-#else
-        return Logger(.info)
-#endif
+        #if DEBUG
+            return Logger(.verbose)
+        #else
+            return Logger(.info)
+        #endif
     }
-    
+
     private let rootLevel: Level
-    
+
     init(_ level: Level = .info) {
-        self.rootLevel = level
+        rootLevel = level
     }
-    
+
     nonisolated func log(_ message: String, level: Level = .info) {
         Task { @Logger in
             guard rootLevel.shouldLog(for: level) else { return }
-            
+
             print(message)
         }
     }
@@ -34,7 +34,7 @@ extension Logger {
         case verbose
         case info
         case silent
-        
+
         func shouldLog(for state: Level) -> Bool {
             return switch (self, state) {
             case (.verbose, _): true

@@ -30,7 +30,7 @@ public extension Style {
         if case let style as HasFillStyle = self {
             context.setFillColor(style.fillColor.cgColor)
         }
-        
+
         if case let style as HasStrokeStyle = self {
             context.setLineWidth(style.strokeWidth)
             context.setStrokeColor(style.strokeColor.cgColor)
@@ -40,7 +40,7 @@ public extension Style {
             context.setLineCap(style.lineCap)
             context.setLineJoin(style.lineJoin)
         }
-        
+
         if case let style as HasDashPattern = self {
             context.setLineDash(phase: style.phase, lengths: style.lengths)
         }

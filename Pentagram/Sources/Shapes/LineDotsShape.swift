@@ -12,7 +12,7 @@ public struct LineDotsShape: Shape {
     private let transform: CGAffineTransform = .identity
     private let dotRadius: CGFloat
     private let touchThreshold: CGFloat = 24
-    
+
     public init(
         _ start: CGPoint,
         _ end: CGPoint,
@@ -26,15 +26,15 @@ public struct LineDotsShape: Shape {
         self.dotRadius = dotRadius
         self.style = style
     }
-    
+
     private init(copy: Self) {
-        self.anchor = copy.anchor
-        self.start = copy.start
-        self.end = copy.end
-        self.dotRadius = copy.dotRadius
-        self.style = copy.style
+        anchor = copy.anchor
+        start = copy.start
+        end = copy.end
+        dotRadius = copy.dotRadius
+        style = copy.style
     }
-    
+
     public func draw(in context: CGContext) {
         context.saveGState()
         context.setLineWidth(style.lineStyle.lineWidth)
@@ -42,20 +42,20 @@ public struct LineDotsShape: Shape {
         context.move(to: start)
         context.addLine(to: end)
         context.strokePath()
-        
+
         style.lineStyle.draw(in: context)
         context.move(to: start)
         context.addLine(to: end)
         context.strokePath()
         context.restoreGState()
-        
+
         context.saveGState()
         var rect = CGRect(centroid: start, width: dotRadius * 2, height: dotRadius * 2)
         style.circleStyle.draw(in: context)
         context.addEllipse(in: rect)
         context.drawPath(using: .fillStroke)
         context.restoreGState()
-        
+
         context.saveGState()
         rect = CGRect(centroid: end, width: dotRadius * 2, height: dotRadius * 2)
         style.circleStyle.draw(in: context)
@@ -63,14 +63,14 @@ public struct LineDotsShape: Shape {
         context.drawPath(using: .fillStroke)
         context.restoreGState()
     }
-    
+
     public func hitTest(_ point: CGPoint) -> Bool {
         findAnchor(at: point) != nil
     }
-    
+
     public func setAnchor(at point: CGPoint) -> Self {
         guard let newAnchor = findAnchor(at: point) else { return self }
-        
+
         return .init(start, end, dotRadius: dotRadius, anchor: newAnchor, style: style)
     }
 }
@@ -81,28 +81,28 @@ public extension LineDotsShape {
     func move(by delta: CGPoint) -> Self {
         return switch anchor {
         case .startDot: .init(
-            start.applying(transform.translated(by: delta)),
-            end,
-            dotRadius: dotRadius,
-            anchor: anchor,
-            style: style
-        )
+                start.applying(transform.translated(by: delta)),
+                end,
+                dotRadius: dotRadius,
+                anchor: anchor,
+                style: style
+            )
         case .endDot: .init(
-            start,
-            end.applying(transform.translated(by: delta)),
-            dotRadius: dotRadius,
-            anchor: anchor,
-            style: style
-        )
+                start,
+                end.applying(transform.translated(by: delta)),
+                dotRadius: dotRadius,
+                anchor: anchor,
+                style: style
+            )
         case .line: .init(
-            start.applying(transform.translated(by: delta)),
-            end.applying(transform.translated(by: delta)),
-            dotRadius: dotRadius,
-            style: style
-        )
+                start.applying(transform.translated(by: delta)),
+                end.applying(transform.translated(by: delta)),
+                dotRadius: dotRadius,
+                style: style
+            )
         }
     }
-    
+
     func rotate(by radians: CGFloat) -> Self {
         let middlePoint = CGPoint.middlePoint(start, end)
         return .init(
@@ -132,7 +132,7 @@ public extension LineDotsShape {
         case endDot(CGPoint)
         case line(CGPoint)
     }
-    
+
     private func findAnchor(at point: CGPoint) -> Anchor? {
         let startRect = CGRect(
             centroid: start,
@@ -156,7 +156,7 @@ public extension LineDotsShape {
         if distance <= threshold {
             return .line(point)
         }
-        
+
         return nil
     }
 }
@@ -167,7 +167,7 @@ public extension LineDotsShape {
     struct LineDotsShapeStyle: Style {
         public let lineStyle: LineShape.LineShapeStyle
         public let circleStyle: CircleShape.CircleShapeStyle
-        
+
         public init(
             lineStyle: LineShape.LineShapeStyle,
             circleStyle: CircleShape.CircleShapeStyle

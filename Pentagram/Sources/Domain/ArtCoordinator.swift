@@ -21,27 +21,27 @@ public final class ArtCoordinator<ShapeType: Hashable>: ArtCoordinatorProtocol {
     private var containers: [ShapeContainer] = []
     private var currentContainer: ShapeContainer = .init()
     private var factories: [ShapeType: any ShapeFactory]
-    
+
     public init(
         factories: [ShapeType: any ShapeFactory]
     ) {
         self.factories = factories
     }
-    
+
     public func draw(in context: CGContext) {
         containers.forEach { $0.draw(in: context) }
         currentContainer.draw(in: context)
     }
-    
+
     public func select(tool newTool: ActionTool) {
         tool = newTool
     }
-    
+
     public func eraseAll() {
         containers = []
         currentContainer.eraseAll()
     }
-    
+
     public func addPoint(at point: CGPoint) {
         if case let .draw(shapeType) = tool, let factory = factories[shapeType] {
             factory.make(with: point) { finalShape in
@@ -58,48 +58,48 @@ public final class ArtCoordinator<ShapeType: Hashable>: ArtCoordinatorProtocol {
 
 // MARK: - Gesture Observable
 
-extension ArtCoordinator {
-    public func receiveRotationStart(at point: CGPoint) {
+public extension ArtCoordinator {
+    func receiveRotationStart(at point: CGPoint) {
         switch tool {
         case .move:
             let currentContainerIndex = containers.lastIndex { $0.contains(point: point) }
             guard let currentContainerIndex else { return }
-            
+
             currentContainer = containers.remove(at: currentContainerIndex)
             currentContainer.setAnchor(at: point)
         case .draw, .freeze: break
         }
     }
-    
-    public func receiveRotation(radians: CGFloat) {
+
+    func receiveRotation(radians: CGFloat) {
         switch tool {
         case .move:
             currentContainer.rotate(by: radians)
         case .draw, .freeze: break
         }
     }
-    
-    public func receiveStartState(at point: CGPoint) {
+
+    func receiveStartState(at point: CGPoint) {
         switch tool {
         case .move:
             let currentContainerIndex = containers.lastIndex { $0.contains(point: point) }
             guard let currentContainerIndex else { return }
-            
+
             currentContainer = containers.remove(at: currentContainerIndex)
             currentContainer.setAnchor(at: point)
         case .draw, .freeze: break
         }
     }
-    
-    public func receiveMovedState(to point: CGPoint, dt: TimeInterval) {
+
+    func receiveMovedState(to point: CGPoint, dt _: TimeInterval) {
         switch tool {
         case .move:
             currentContainer.move(to: point)
         case .draw, .freeze: break
         }
     }
-    
-    public func receiveEndState(at point: CGPoint) {
+
+    func receiveEndState(at point: CGPoint) {
         switch tool {
         case .move:
             if currentContainer.containsShapes {
@@ -111,8 +111,8 @@ extension ArtCoordinator {
         case .freeze: break
         }
     }
-    
-    public func receiveCancelledState() {
+
+    func receiveCancelledState() {
         switch tool {
         case .move:
             if currentContainer.containsShapes {

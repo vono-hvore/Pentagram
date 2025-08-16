@@ -7,7 +7,7 @@ import CoreGraphics
 public protocol Shape: Transformable, Render, Sendable {
     associatedtype ShapeStyle: Style
     var style: ShapeStyle { get }
-    
+
     func hitTest(_ point: CGPoint) -> Bool
     mutating func setAnchor(at point: CGPoint) -> Self
 }

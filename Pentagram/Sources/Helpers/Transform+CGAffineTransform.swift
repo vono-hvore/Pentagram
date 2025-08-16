@@ -7,12 +7,12 @@
 
 import UIKit
 
-extension CGAffineTransform {
-    public func translated(by delta: CGPoint) -> Self {
-        self.translatedBy(x: delta.x, y: delta.y)
+public extension CGAffineTransform {
+    func translated(by delta: CGPoint) -> Self {
+        translatedBy(x: delta.x, y: delta.y)
     }
-    
-    public func scaled(by amount: CGFloat) -> Self {
-        self.scaledBy(x: amount, y: amount)
+
+    func scaled(by amount: CGFloat) -> Self {
+        scaledBy(x: amount, y: amount)
     }
 }
