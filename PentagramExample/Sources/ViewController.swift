@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Pentagram
+import PentagramFramework
 import UIKit
 
 private enum ShapeType {

@@ -28,6 +28,7 @@ public extension CGPoint {
         CGPoint(x: (lhs.x + rhs.x) / 2, y: (lhs.y + rhs.y) / 2)
     }
 
+    // swiftlint:disable identifier_name
     static func distanceFromPointToSegment(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
         let ab = b - a
         let ap = p - a
@@ -38,4 +39,5 @@ public extension CGPoint {
 
         return CGPoint.distance(p, projection)
     }
+    // swiftlint:enable identifier_name
 }

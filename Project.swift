@@ -15,6 +15,15 @@ let project = Project(
 )
 
 extension Target {
+    static var lintScript: String {
+        """
+        if command -v swiftlint >/dev/null 2>&1; then
+        	swiftlint version
+        	swiftlint --quiet
+        fi
+        """
+    }
+
     static let pentagramFramework = Target.target(
         name: "PentagramFramework",
         destinations: .iOS,
@@ -23,11 +32,18 @@ extension Target {
         deploymentTargets: .iOS("16.0"),
         sources: ["Pentagram/Sources/**"],
         headers: .headers(public: "Pentagram/Sources/*.h"),
+        scripts: [
+            .pre(
+                script: lintScript,
+                name: "SwiftLint",
+                basedOnDependencyAnalysis: false
+            ),
+        ],
         settings: .settings(
             base: [
                 "SWIFT_VERSION": "6.1",
             ]
-        )
+        ),
     )
 
     static let pentagramExample = Target.target(
@@ -51,7 +67,17 @@ extension Target {
             ],
         ]),
         sources: ["PentagramExample/Sources/**"],
-        resources: ["PentagramExample/Resources/**"],
+        resources: [
+            "PentagramExample/Resources/**",
+            ".swiftlint.yml",
+        ],
+        scripts: [
+            .pre(
+                script: lintScript,
+                name: "SwiftLint",
+                basedOnDependencyAnalysis: false
+            ),
+        ],
         dependencies: [
             .target(name: "PentagramFramework"),
         ],

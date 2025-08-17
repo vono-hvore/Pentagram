@@ -12,7 +12,7 @@ build:
 	tuist build
 
 edit:
-	tusit edit
+	tuist edit
 
 format:
 	swiftformat .
