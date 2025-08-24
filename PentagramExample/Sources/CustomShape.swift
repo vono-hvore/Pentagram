@@ -3,13 +3,13 @@
 //
 
 import PentagramFramework
-import UIKit
+import CoreGraphics
 
 protocol ShapeVisitorExtended: ShapeVisitor {
     func visitCustomShape(_ shape: CustomShape)
 }
 
-public struct CustomShape: Shape {
+struct CustomShape: Shape {
     public let style: CircleShape.CircleShapeStyle
     private let rect: CGRect
 
@@ -18,13 +18,13 @@ public struct CustomShape: Shape {
         self.style = style
     }
 
-    public func acceptVisitor(_ visitor: any ShapeVisitor) {
+    func acceptVisitor(_ visitor: any ShapeVisitor) {
         guard let visitor = visitor as? ShapeVisitorExtended else { return }
 
         visitor.visitCustomShape(self)
     }
 
-    public func draw(in context: CGContext) {
+    func draw(in context: CGContext) {
         context.saveGState()
 
         style.draw(in: context)
@@ -34,15 +34,15 @@ public struct CustomShape: Shape {
         context.restoreGState()
     }
 
-    public func hitTest(_ point: CGPoint) -> Bool {
+    func hitTest(_ point: CGPoint) -> Bool {
         rect.contains(point)
     }
 
-    public func setAnchor(at _: CGPoint) -> Self { self }
+    func setAnchor(at _: CGPoint) -> Self { self }
 
-    public func rotate(by _: CGFloat) -> Self { self }
+    func rotate(by _: CGFloat) -> Self { self }
 
-    public func move(by delta: CGPoint) -> CustomShape {
+    func move(by delta: CGPoint) -> CustomShape {
         .init(
             .init(
                 centroid: rect.origin + delta,

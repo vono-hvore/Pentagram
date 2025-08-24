@@ -7,12 +7,13 @@ import UIKit
 
 @MainActor
 struct ShapeContainer {
+    var points: [CGPoint] = []
     private(set) var shapes: [any Shape] = []
     private var anchor: CGPoint = .zero
     private var rotation: CGFloat = .zero
 
     var containsShapes: Bool { !shapes.isEmpty }
-    
+
     func acceptVisitor(_ visitor: any ShapeVisitor) {
         shapes.forEach { $0.acceptVisitor(visitor) }
     }

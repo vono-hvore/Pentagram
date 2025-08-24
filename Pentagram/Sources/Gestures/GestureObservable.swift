@@ -5,7 +5,7 @@
 import Foundation
 
 @MainActor
-public protocol GestureObservable: Sendable {
+protocol GestureObservable: Sendable {
     func receiveStartState(at point: CGPoint)
 
     func receiveMovedState(to point: CGPoint, deltaT: TimeInterval)
@@ -15,6 +15,4 @@ public protocol GestureObservable: Sendable {
     func receiveCancelledState()
 
     func receiveRotation(radians: CGFloat)
-
-    func receiveRotationStart(at point: CGPoint)
 }

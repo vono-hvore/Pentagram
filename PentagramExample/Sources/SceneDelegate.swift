@@ -1,8 +1,5 @@
 //
 //  SceneDelegate.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 01.06.2025.
 //
 
 import UIKit

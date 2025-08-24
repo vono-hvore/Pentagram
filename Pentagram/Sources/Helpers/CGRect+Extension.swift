@@ -1,8 +1,5 @@
 //
 //  CGRect+Extension.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 21.06.2025.
 //
 
 import CoreGraphics

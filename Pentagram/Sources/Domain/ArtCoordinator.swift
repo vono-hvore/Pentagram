@@ -2,32 +2,29 @@
 //  ArtCoordinator.swift
 //
 
+import CoreGraphics
 import Foundation
-import UIKit
 
-public typealias ArtCoordinatorProtocol = GestureObservable & Render
-
-public extension ArtCoordinator {
-    enum ActionTool {
-        case draw(ShapeType)
-        case move
-        case freeze
-    }
+public enum Action {
+    case move
+    case rotate
+    case draw(any ShapeSelector)
+    case freeze
 }
 
 @MainActor
-public final class ArtCoordinator<ShapeType: Hashable>: ArtCoordinatorProtocol {
-    private var tool: ActionTool = .move
+public final class ArtCoordinator: Render {
+    private var actionState: Action = .move
     private var containers: [ShapeContainer] = []
     private var currentContainer: ShapeContainer = .init()
-    private var factories: [ShapeType: any ShapeFactory]
+    private var pointsCreatesShapeFactories: [AnyShapeSelector: PointCreatesShapeFactory]
 
     public init(
-        factories: [ShapeType: any ShapeFactory]
+        factories: [some ShapeSelector: PointCreatesShapeFactory]
     ) {
-        self.factories = factories
+        self.pointsCreatesShapeFactories = factories
     }
-    
+
     public func acceptVisitor(_ visitor: any ShapeVisitor) {
         containers.forEach { $0.acceptVisitor(visitor) }
     }
@@ -37,8 +34,8 @@ public final class ArtCoordinator<ShapeType: Hashable>: ArtCoordinatorProtocol {
         currentContainer.draw(in: context)
     }
 
-    public func select(tool newTool: ActionTool) {
-        tool = newTool
+    public func select(action newState: Action) {
+        actionState = newState
     }
 
     public func eraseAll() {
@@ -46,84 +43,118 @@ public final class ArtCoordinator<ShapeType: Hashable>: ArtCoordinatorProtocol {
         currentContainer.eraseAll()
     }
 
-    public func addPoint(at point: CGPoint) {
-        if case let .draw(shapeType) = tool, let factory = factories[shapeType] {
-            factory.make(with: point) { finalShape in
-                currentContainer.eraseAll()
-                currentContainer.add(shape: finalShape)
-                containers.append(currentContainer)
-                currentContainer = .init()
-            } rawDraft: { draft in
-                currentContainer.add(shape: draft)
-            }
+    public func prepareToRotation() {
+        switch actionState {
+        case .move:
+            select(action: .rotate)
+        case .draw, .freeze, .rotate:
+            break
         }
     }
 }
 
 // MARK: - Gesture Observable
 
-public extension ArtCoordinator {
-    func receiveRotationStart(at point: CGPoint) {
-        switch tool {
+extension ArtCoordinator: GestureObservable {
+    func receiveStartState(at point: CGPoint) {
+        switch actionState {
         case .move:
-            let currentContainerIndex = containers.lastIndex { $0.contains(point: point) }
-            guard let currentContainerIndex else { return }
+            PointMovesShapeStrategy().receiveStartState(context: self, at: point)
+        case .rotate:
+            RotateShapeStrategy().receiveStartState(context: self, at: point)
+        case .draw(let shapeType):
+            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
 
-            currentContainer = containers.remove(at: currentContainerIndex)
-            currentContainer.setAnchor(at: point)
-        case .draw, .freeze: break
+            PointCreatesShapeStrategy(factory).receiveStartState(context: self, at: point)
+        case .freeze: break
+        }
+    }
+
+    func receiveMovedState(to point: CGPoint, deltaT: TimeInterval) {
+        switch actionState {
+        case .move:
+            PointMovesShapeStrategy().receiveMovedState(context: self, to: point, deltaT: deltaT)
+        case .rotate:
+            RotateShapeStrategy().receiveMovedState(context: self, to: point, deltaT: deltaT)
+        case .draw(let shapeType):
+            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+
+            PointCreatesShapeStrategy(factory).receiveMovedState(
+                context: self, to: point, deltaT: deltaT)
+        case .freeze: break
         }
     }
 
     func receiveRotation(radians: CGFloat) {
-        switch tool {
+        switch actionState {
         case .move:
-            currentContainer.rotate(by: radians)
-        case .draw, .freeze: break
-        }
-    }
+            PointMovesShapeStrategy().receiveRotation(context: self, radians: radians)
+        case .rotate:
+            RotateShapeStrategy().receiveRotation(context: self, radians: radians)
+        case .draw(let shapeType):
+            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
 
-    func receiveStartState(at point: CGPoint) {
-        switch tool {
-        case .move:
-            let currentContainerIndex = containers.lastIndex { $0.contains(point: point) }
-            guard let currentContainerIndex else { return }
-
-            currentContainer = containers.remove(at: currentContainerIndex)
-            currentContainer.setAnchor(at: point)
-        case .draw, .freeze: break
-        }
-    }
-
-    func receiveMovedState(to point: CGPoint, deltaT _: TimeInterval) {
-        switch tool {
-        case .move:
-            currentContainer.move(to: point)
-        case .draw, .freeze: break
+            PointCreatesShapeStrategy(factory).receiveRotation(context: self, radians: radians)
+        case .freeze: break
         }
     }
 
     func receiveEndState(at point: CGPoint) {
-        switch tool {
+        switch actionState {
         case .move:
-            if currentContainer.containsShapes {
-                containers.append(currentContainer)
-            }
-            currentContainer = .init()
-        case .draw:
-            addPoint(at: point)
+            PointMovesShapeStrategy().receiveEndState(context: self, at: point)
+        case .rotate:
+            RotateShapeStrategy().receiveEndState(context: self, at: point)
+            select(action: .move)
+        case .draw(let shapeType):
+            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+
+            PointCreatesShapeStrategy(factory).receiveEndState(context: self, at: point)
         case .freeze: break
         }
     }
 
     func receiveCancelledState() {
-        switch tool {
+        switch actionState {
         case .move:
-            if currentContainer.containsShapes {
-                containers.append(currentContainer)
-            }
-            currentContainer = .init()
-        case .draw, .freeze: break
+            PointMovesShapeStrategy().receiveCancelledState(context: self)
+        case .rotate:
+            RotateShapeStrategy().receiveCancelledState(context: self)
+        case .draw(let shapeType):
+            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+
+            PointCreatesShapeStrategy(factory).receiveCancelledState(context: self)
+        case .freeze: break
         }
+    }
+}
+
+// MARK: - Shape Context
+
+extension ArtCoordinator: ShapeContext {
+    func dequeueContainer(where predicate: @escaping (ShapeContainer) -> Bool) -> ShapeContainer? {
+        var container: ShapeContainer?
+        containers.removeAll {
+            guard predicate($0) else { return false }
+            container = $0
+            return true
+        }
+        return container
+    }
+
+    func enqueueContainer(_ container: ShapeContainer) {
+        containers.append(container)
+    }
+
+    func selectedContainer() -> ShapeContainer {
+        currentContainer
+    }
+
+    func selectContainer(_ container: ShapeContainer) {
+        currentContainer = container
+    }
+
+    func resetSelectedContainer() {
+        currentContainer = .init()
     }
 }

@@ -1,8 +1,5 @@
 //
 //  Transform+CGAffineTransform.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 20.06.2025.
 //
 
 import UIKit

@@ -5,9 +5,9 @@
 import UIKit
 
 public class GeometricalDrawingView: UIView {
-    private let artCoordinator: ArtCoordinatorProtocol
+    private let artCoordinator: ArtCoordinator
 
-    public init(artCoordinator: ArtCoordinatorProtocol) {
+    public init(artCoordinator: ArtCoordinator) {
         self.artCoordinator = artCoordinator
 
         super.init(frame: .zero)
@@ -84,9 +84,10 @@ private extension GeometricalDrawingView {
     }
 
     func handleRotation(_ state: UIGestureRecognizer.State, point: CGPoint, rotation: CGFloat) {
+        artCoordinator.prepareToRotation()
         switch state {
         case .began:
-            artCoordinator.receiveRotationStart(at: point)
+            artCoordinator.receiveStartState(at: point)
         case .changed:
             artCoordinator.receiveRotation(radians: rotation)
         case .ended:

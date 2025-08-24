@@ -1,21 +1,18 @@
 //
 //  ViewController.swift
-//  PentagramExample
-//
-//  Created by Rodion Hladchenko on 01.06.2025.
 //
 
 import Foundation
 import PentagramFramework
 import UIKit
 
-private enum ShapeType {
+private enum SelectShape: ShapeSelector {
     case lineDots
 }
 
 class ViewController: UIViewController {
     private var drawingView: GeometricalDrawingView!
-    private var artCoordinator: ArtCoordinator<ShapeType>!
+    private var artCoordinator: ArtCoordinator!
     let toolBar: UIToolbar = .init()
 
     override func viewDidLoad() {
@@ -33,7 +30,7 @@ class ViewController: UIViewController {
 
     private func setupDrawingView() {
         let dotRadius = CGFloat(7)
-        let shapeFactory = PointShapeFactory { points in
+        let shapeFactory: PointCreatesShapeFactory = { points in
             if points.count == 2 {
                 return .final(
                     shape: LineDotsShape(
@@ -52,7 +49,7 @@ class ViewController: UIViewController {
             }
         }
         artCoordinator = .init(factories: [
-            ShapeType.lineDots: shapeFactory,
+            SelectShape.lineDots: shapeFactory,
         ])
         drawingView = .init(artCoordinator: artCoordinator)
         view.addSubview(drawingView)
@@ -61,7 +58,8 @@ class ViewController: UIViewController {
     private func setupToolBar() {
         view.addSubview(toolBar)
         toolBar.translatesAutoresizingMaskIntoConstraints = false
-        toolBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        toolBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive =
+            true
         toolBar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         toolBar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         toolBar.setItems(barButtonItems, animated: false)
@@ -116,11 +114,11 @@ class ViewController: UIViewController {
     }
 
     @objc private func selectTool() {
-        artCoordinator.select(tool: .move)
+        artCoordinator.select(action: .move)
     }
 
     @objc private func selectBezierCurve() {
-        artCoordinator.select(tool: .draw(.lineDots))
+        artCoordinator.select(action: .draw(SelectShape.lineDots))
     }
 
     @objc private func clearTool() {
@@ -139,15 +137,17 @@ class ViewController: UIViewController {
     // MARK: - Menu Creation
 
     private func createMaskMenu() -> UIMenu {
-        let layersAction = UIAction(title: "Add", image: UIImage(systemName: "square.2.layers.3d.fill")) { _ in
-            self.artCoordinator.select(tool: .draw(.lineDots))
+        let layersAction = UIAction(
+            title: "Add", image: UIImage(systemName: "square.2.layers.3d.fill")
+        ) { _ in
+            self.artCoordinator.select(action: .draw(SelectShape.lineDots))
         }
 
         let bottomLayerAction = UIAction(
             title: "Subtract",
             image: UIImage(systemName: "square.2.layers.3d.bottom.filled")
         ) { _ in
-            self.artCoordinator.select(tool: .draw(.lineDots))
+            self.artCoordinator.select(action: .draw(SelectShape.lineDots))
         }
 
         return UIMenu(title: "Mask", children: [layersAction, bottomLayerAction])

@@ -1,8 +1,5 @@
 //
 //  Pentagram.h
-//  Pentagram
-//
-//  Created by Rodion Hladchenko on 01.06.2025.
 //
 
 #import <Foundation/Foundation.h>
