@@ -15,13 +15,13 @@ edit:
 	tuist edit
 
 format:
-	swiftformat .
+	swift format . --recursive
 
 autocorrect:
 	swiftlint autocorrect --quiet
 
 lint:
 	swiftlint version
-	swiftformat --version
+	swift format --version
 	swiftlint --strict --quiet
-	swiftformat . --lint
+	swift format lint . --recursive
