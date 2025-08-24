@@ -5,6 +5,7 @@
 import UIKit
 
 public struct LineShape: Shape {
+    public let id: String = UUID().uuidString
     public let style: LineShapeStyle
     public let start: CGPoint
     public let end: CGPoint
@@ -20,6 +21,10 @@ public struct LineShape: Shape {
         self.end = end
         self.style = style
         self.touchThreshold = touchThreshold
+    }
+
+    public func acceptVisitor(_ visitor: any ShapeVisitor) {
+        visitor.visitLineShape(self)
     }
 
     public func draw(in context: CGContext) {

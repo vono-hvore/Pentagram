@@ -12,6 +12,10 @@ struct ShapeContainer {
     private var rotation: CGFloat = .zero
 
     var containsShapes: Bool { !shapes.isEmpty }
+    
+    func acceptVisitor(_ visitor: any ShapeVisitor) {
+        shapes.forEach { $0.acceptVisitor(visitor) }
+    }
 
     func draw(in context: CGContext) {
         shapes.forEach { $0.draw(in: context) }
@@ -32,10 +36,7 @@ struct ShapeContainer {
     mutating func setAnchor(at point: CGPoint) {
         anchor = point
         rotation = .zero
-        shapes = shapes.map { shape in
-            var newShape = shape
-            return newShape.setAnchor(at: point)
-        }
+        shapes = shapes.map { $0.setAnchor(at: point) }
     }
 
     mutating func move(to point: CGPoint) {

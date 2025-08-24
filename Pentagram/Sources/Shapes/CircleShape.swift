@@ -13,6 +13,10 @@ public struct CircleShape: Shape {
         self.style = style
     }
 
+    public func acceptVisitor(_ visitor: any ShapeVisitor) {
+        visitor.visitCircleShape(self)
+    }
+
     public func draw(in context: CGContext) {
         context.saveGState()
 

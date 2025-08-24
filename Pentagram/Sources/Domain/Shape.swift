@@ -9,7 +9,8 @@ public protocol Shape: Transformable, Render, Sendable {
     var style: ShapeStyle { get }
 
     func hitTest(_ point: CGPoint) -> Bool
-    mutating func setAnchor(at point: CGPoint) -> Self
+    func setAnchor(at point: CGPoint) -> Self
+    func acceptVisitor(_ visitor: ShapeVisitor)
 }
 
 @MainActor

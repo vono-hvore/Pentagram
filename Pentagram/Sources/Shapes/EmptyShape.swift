@@ -17,6 +17,8 @@ public struct EmptyShape: Shape {
 
     public init() {}
 
+    public func acceptVisitor(_: any ShapeVisitor) {}
+
     public func draw(in _: CGContext) {}
 
     public func hitTest(_: CGPoint) -> Bool { false }

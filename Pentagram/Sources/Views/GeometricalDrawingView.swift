@@ -74,7 +74,7 @@ private extension GeometricalDrawingView {
         case .began, .possible:
             artCoordinator.receiveStartState(at: point)
         case .changed:
-            artCoordinator.receiveMovedState(to: point, dt: .zero)
+            artCoordinator.receiveMovedState(to: point, deltaT: .zero)
         case .ended:
             artCoordinator.receiveEndState(at: point)
         case .failed, .cancelled:

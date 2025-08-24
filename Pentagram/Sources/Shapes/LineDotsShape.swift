@@ -35,6 +35,10 @@ public struct LineDotsShape: Shape {
         style = copy.style
     }
 
+    public func acceptVisitor(_ visitor: any ShapeVisitor) {
+        visitor.visitLineDotsShape(self)
+    }
+
     public func draw(in context: CGContext) {
         context.saveGState()
         context.setLineWidth(style.lineStyle.lineWidth)
@@ -80,21 +84,24 @@ public struct LineDotsShape: Shape {
 public extension LineDotsShape {
     func move(by delta: CGPoint) -> Self {
         return switch anchor {
-        case .startDot: .init(
+        case .startDot:
+            .init(
                 start.applying(transform.translated(by: delta)),
                 end,
                 dotRadius: dotRadius,
                 anchor: anchor,
                 style: style
             )
-        case .endDot: .init(
+        case .endDot:
+            .init(
                 start,
                 end.applying(transform.translated(by: delta)),
                 dotRadius: dotRadius,
                 anchor: anchor,
                 style: style
             )
-        case .line: .init(
+        case .line:
+            .init(
                 start.applying(transform.translated(by: delta)),
                 end.applying(transform.translated(by: delta)),
                 dotRadius: dotRadius,
@@ -126,8 +133,8 @@ public extension LineDotsShape {
 
 // MARK: - Anchor
 
-public extension LineDotsShape {
-    enum Anchor: Sendable {
+extension LineDotsShape {
+    public enum Anchor: Sendable {
         case startDot(CGPoint)
         case endDot(CGPoint)
         case line(CGPoint)
@@ -180,6 +187,16 @@ public extension LineDotsShape {
 
 public extension LineDotsShape.LineDotsShapeStyle {
     static var `default`: Self {
-        .init(lineStyle: .init(fillColor: .red, strokeColor: .black, strokeWidth: 4, lineWidth: 4, lineCap: .round, lineJoin: .round), circleStyle: .default)
+        .init(
+            lineStyle: .init(
+                fillColor: .red,
+                strokeColor: .black,
+                strokeWidth: 4,
+                lineWidth: 4,
+                lineCap: .round,
+                lineJoin: .round
+            ),
+            circleStyle: .default
+        )
     }
 }

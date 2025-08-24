@@ -9,15 +9,15 @@ import Foundation
 
 public extension CGPoint {
     static func + (_ lhs: CGPoint, _ rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+        CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
 
     static func - (_ lhs: CGPoint, _ rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+        CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
     }
 
     static prefix func - (_ lhs: CGPoint) -> CGPoint {
-        return CGPoint(x: -lhs.x, y: -lhs.y)
+        CGPoint(x: -lhs.x, y: -lhs.y)
     }
 
     static func distance(_ lhs: CGPoint, _ rhs: CGPoint) -> CGFloat {

@@ -27,6 +27,10 @@ public final class ArtCoordinator<ShapeType: Hashable>: ArtCoordinatorProtocol {
     ) {
         self.factories = factories
     }
+    
+    public func acceptVisitor(_ visitor: any ShapeVisitor) {
+        containers.forEach { $0.acceptVisitor(visitor) }
+    }
 
     public func draw(in context: CGContext) {
         containers.forEach { $0.draw(in: context) }
@@ -91,7 +95,7 @@ public extension ArtCoordinator {
         }
     }
 
-    func receiveMovedState(to point: CGPoint, dt _: TimeInterval) {
+    func receiveMovedState(to point: CGPoint, deltaT _: TimeInterval) {
         switch tool {
         case .move:
             currentContainer.move(to: point)
