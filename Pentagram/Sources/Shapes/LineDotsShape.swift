@@ -27,14 +27,6 @@ public struct LineDotsShape: Shape {
         self.style = style
     }
 
-    private init(copy: Self) {
-        anchor = copy.anchor
-        start = copy.start
-        end = copy.end
-        dotRadius = copy.dotRadius
-        style = copy.style
-    }
-
     public func acceptVisitor(_ visitor: any ShapeVisitor) {
         visitor.visitLineDotsShape(self)
     }
@@ -165,38 +157,5 @@ extension LineDotsShape {
         }
 
         return nil
-    }
-}
-
-// MARK: - Style
-
-public extension LineDotsShape {
-    struct LineDotsShapeStyle: Style {
-        public let lineStyle: LineShape.LineShapeStyle
-        public let circleStyle: CircleShape.CircleShapeStyle
-
-        public init(
-            lineStyle: LineShape.LineShapeStyle,
-            circleStyle: CircleShape.CircleShapeStyle
-        ) {
-            self.lineStyle = lineStyle
-            self.circleStyle = circleStyle
-        }
-    }
-}
-
-public extension LineDotsShape.LineDotsShapeStyle {
-    static var `default`: Self {
-        .init(
-            lineStyle: .init(
-                fillColor: .red,
-                strokeColor: .black,
-                strokeWidth: 4,
-                lineWidth: 4,
-                lineCap: .round,
-                lineJoin: .round
-            ),
-            circleStyle: .default
-        )
     }
 }

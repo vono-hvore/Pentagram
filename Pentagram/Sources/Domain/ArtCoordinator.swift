@@ -8,7 +8,7 @@ import Foundation
 public enum Action {
     case move
     case rotate
-    case draw(any ShapeSelector)
+    case draw(describe: any ShapeDescriptor)
     case freeze
 }
 
@@ -17,12 +17,12 @@ public final class ArtCoordinator: Render {
     private var actionState: Action = .move
     private var containers: [ShapeContainer] = []
     private var currentContainer: ShapeContainer = .init()
-    private var pointsCreatesShapeFactories: [AnyShapeSelector: PointCreatesShapeFactory]
+    private var pointsCreatesShapeFactories: [AnyShapeDescriptor: PointCreatesShapeFactory]
 
     public init(
-        factories: [some ShapeSelector: PointCreatesShapeFactory]
+        pointsCreatesShapeFactories: [some ShapeDescriptor: PointCreatesShapeFactory]
     ) {
-        self.pointsCreatesShapeFactories = factories
+        self.pointsCreatesShapeFactories = pointsCreatesShapeFactories
     }
 
     public func acceptVisitor(_ visitor: any ShapeVisitor) {
@@ -62,8 +62,8 @@ extension ArtCoordinator: GestureObservable {
             PointMovesShapeStrategy().receiveStartState(context: self, at: point)
         case .rotate:
             RotateShapeStrategy().receiveStartState(context: self, at: point)
-        case .draw(let shapeType):
-            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+        case .draw(let shapeDescriptor):
+            guard let factory = pointsCreatesShapeFactories[shapeDescriptor.eraseToAnyShapeDescriptor] else { return }
 
             PointCreatesShapeStrategy(factory).receiveStartState(context: self, at: point)
         case .freeze: break
@@ -76,8 +76,8 @@ extension ArtCoordinator: GestureObservable {
             PointMovesShapeStrategy().receiveMovedState(context: self, to: point, deltaT: deltaT)
         case .rotate:
             RotateShapeStrategy().receiveMovedState(context: self, to: point, deltaT: deltaT)
-        case .draw(let shapeType):
-            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+        case .draw(let shapeDescriptor):
+            guard let factory = pointsCreatesShapeFactories[shapeDescriptor.eraseToAnyShapeDescriptor] else { return }
 
             PointCreatesShapeStrategy(factory).receiveMovedState(
                 context: self, to: point, deltaT: deltaT)
@@ -91,8 +91,8 @@ extension ArtCoordinator: GestureObservable {
             PointMovesShapeStrategy().receiveRotation(context: self, radians: radians)
         case .rotate:
             RotateShapeStrategy().receiveRotation(context: self, radians: radians)
-        case .draw(let shapeType):
-            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+        case .draw(let shapeDescriptor):
+            guard let factory = pointsCreatesShapeFactories[shapeDescriptor.eraseToAnyShapeDescriptor] else { return }
 
             PointCreatesShapeStrategy(factory).receiveRotation(context: self, radians: radians)
         case .freeze: break
@@ -106,8 +106,8 @@ extension ArtCoordinator: GestureObservable {
         case .rotate:
             RotateShapeStrategy().receiveEndState(context: self, at: point)
             select(action: .move)
-        case .draw(let shapeType):
-            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+        case .draw(let shapeDescriptor):
+            guard let factory = pointsCreatesShapeFactories[shapeDescriptor.eraseToAnyShapeDescriptor] else { return }
 
             PointCreatesShapeStrategy(factory).receiveEndState(context: self, at: point)
         case .freeze: break
@@ -120,8 +120,8 @@ extension ArtCoordinator: GestureObservable {
             PointMovesShapeStrategy().receiveCancelledState(context: self)
         case .rotate:
             RotateShapeStrategy().receiveCancelledState(context: self)
-        case .draw(let shapeType):
-            guard let factory = pointsCreatesShapeFactories[shapeType.eraseToAnyShapeSelector] else { return }
+        case .draw(let shapeDescriptor):
+            guard let factory = pointsCreatesShapeFactories[shapeDescriptor.eraseToAnyShapeDescriptor] else { return }
 
             PointCreatesShapeStrategy(factory).receiveCancelledState(context: self)
         case .freeze: break

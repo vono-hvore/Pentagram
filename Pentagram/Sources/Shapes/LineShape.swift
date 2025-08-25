@@ -44,45 +44,15 @@ public struct LineShape: Shape {
         context.restoreGState()
     }
 
-    public func setAnchor(at _: CGPoint) -> Self { self }
-
     public func hitTest(_ point: CGPoint) -> Bool {
         let distance = CGPoint.distanceFromPointToSegment(point, start, end)
         return distance <= touchThreshold / 2
     }
 
-    public func rotate(by _: CGFloat) -> LineShape { self }
-
     public func move(by delta: CGPoint) -> LineShape {
         .init(start + delta, end + delta, style: style)
     }
-}
-
-// MARK: - Style
-
-public extension LineShape {
-    struct LineShapeStyle: HasFillStyle, HasStrokeStyle, HasLineStyle {
-        public let fillColor: UIColor
-        public let lineWidth: CGFloat
-        public let strokeColor: UIColor
-        public let strokeWidth: CGFloat
-        public let lineCap: CGLineCap
-        public let lineJoin: CGLineJoin
-
-        public init(
-            fillColor: UIColor,
-            strokeColor: UIColor,
-            strokeWidth: CGFloat,
-            lineWidth: CGFloat,
-            lineCap: CGLineCap,
-            lineJoin: CGLineJoin
-        ) {
-            self.fillColor = fillColor
-            self.lineWidth = lineWidth
-            self.strokeColor = strokeColor
-            self.strokeWidth = strokeWidth
-            self.lineCap = lineCap
-            self.lineJoin = lineJoin
-        }
-    }
+    
+    public func setAnchor(at _: CGPoint) -> Self { self }
+    public func rotate(by _: CGFloat) -> LineShape { self }
 }

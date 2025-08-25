@@ -2,8 +2,8 @@
 //  ShapeContainer.swift
 //
 
+import Foundation
 import CoreGraphics
-import UIKit
 
 @MainActor
 struct ShapeContainer {
